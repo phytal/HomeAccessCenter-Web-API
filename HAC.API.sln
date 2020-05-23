@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HAC.API", "HAC API\HAC.API.csproj", "{D5290EB9-A771-42C3-AD2B-322A7A1E0824}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HAC.API", "HAC.API\HAC.API.csproj", "{D5290EB9-A771-42C3-AD2B-322A7A1E0824}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
