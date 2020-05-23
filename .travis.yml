@@ -3,7 +3,7 @@ mono: none
 dotnet: 3.1.100
 script:
 - dotnet restore
-- dotnet build ./HomeAccessCenter-Web-API/
+- dotnet build ./HAC.API/
 deploy:
   provider: heroku
   api_key:
