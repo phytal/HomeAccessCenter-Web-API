@@ -13,22 +13,22 @@ namespace HAC.API.HAC
 {
     public class HAC
     {
-        public HttpWebResponse Login(string username, string password, out CookieContainer container)
+        public HttpWebResponse Login(string link, string username, string password, out CookieContainer container)
         {
             container = new CookieContainer();
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(
-                    "https://hac.friscoisd.org/HomeAccess/Account/LogOn?ReturnUrl=%2fHomeAccess%2fClasses%2fClasswork");
+                    $"{link}/HomeAccess/Account/LogOn?ReturnUrl=%2fHomeAccess%2fClasses%2fClasswork");
 
                 request.KeepAlive = true;
                 request.Headers.Set(HttpRequestHeader.CacheControl, "max-age=0");
                 request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
-                request.Headers.Add("Origin", @"https://hac.friscoisd.org/");
+                request.Headers.Add("Origin", $"{link}/");
                 request.Headers.Add("Upgrade-Insecure-Requests", @"1");
                 request.UserAgent = "Chrome/77.0.3865.120";
                 request.ContentType = "application/x-www-form-urlencoded";
-                request.Referer = "https://hac.friscoisd.org/HomeAccess/Account/LogOn?ReturnUrl=%2fHomeAccess%2fClasses%2fClasswork";
+                request.Referer = $"{link}/HomeAccess/Account/LogOn?ReturnUrl=%2fHomeAccess%2fClasses%2fClasswork";
                 request.Headers.Set(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
                 request.Headers.Set(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.8");
                 request.CookieContainer = container;
@@ -50,20 +50,20 @@ namespace HAC.API.HAC
             }
         }
 
-        public Response GetCourses(CookieContainer cookies, Uri requestUri)
+        public Response GetCourses(CookieContainer cookies, Uri requestUri, string link)
         {
             var oldAssignmentList = new List<Course>();
             var assignmentList = new List<Course>();
-            var reportCardCourses = new ReportCardList();
+            var reportCardCourses = new ReportCardList[4];
             try
             {
                 //report card
-                string reportCardData = getRawReportCardData(cookies, requestUri);
+                string reportCardData = getRawReportCardData(cookies, requestUri, link);
                 var reportCardHtmlDocument = new HtmlDocument();
                 reportCardHtmlDocument.LoadHtml(reportCardData);
                 reportCardCourses = CheckReportCard.CheckReportCardTask(reportCardHtmlDocument);
                 //current courses
-                string data = getRawGradeData(cookies, requestUri);
+                string data = getRawGradeData(cookies, requestUri, link);
 
                 var htmlDocument = new HtmlDocument();
                 htmlDocument.LoadHtml(data);
@@ -99,7 +99,7 @@ namespace HAC.API.HAC
                         courseID = courseID.TrimEnd(courseID[courseID.Length - 1]);
                     }
 
-                    var courseGrade = "";
+                    string courseGrade;
                     try
                     {
                         courseGrade = courseHtmlItem.Descendants("span")
@@ -112,11 +112,11 @@ namespace HAC.API.HAC
                         continue;
                     }
 
-                    assignmentList.Add(new Course { courseName = courseName, courseID = courseID, courseAverage = Math.Round(double.Parse(courseGrade)) });
+                    assignmentList.Add(new Course { courseName = courseName, courseID = courseID, courseAverage = double.Parse(courseGrade) });
                 }
 
                 //past courses 
-                string oldData = getRawOldGradeData(cookies, requestUri);
+                string oldData = getRawOldGradeData(cookies, requestUri, link);
 
                 var oldHtmlDocument = new HtmlDocument();
                 oldHtmlDocument.LoadHtml(oldData); //gets all of the years
@@ -209,11 +209,14 @@ namespace HAC.API.HAC
                 {
                     List = oldAssignmentList
                 },
-                ReportCardList = reportCardCourses
+                ReportCardList1 = reportCardCourses[0],
+                ReportCardList2 = reportCardCourses[1],
+                ReportCardList3 = reportCardCourses[2],
+                ReportCardList4 = reportCardCourses[3],
             };
         }
 
-        private string getRawGradeData(CookieContainer cookies, Uri requestUri)
+        private string getRawGradeData(CookieContainer cookies, Uri requestUri, string link)
         {
             string s = string.Empty;
             foreach (Cookie cookie in cookies.GetCookies(requestUri))
@@ -222,7 +225,7 @@ namespace HAC.API.HAC
             }
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri("https://hac.friscoisd.org/HomeAccess/Content/Student/Assignments.aspx"));
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri($"{link}/HomeAccess/Content/Student/Assignments.aspx"));
 
                 request.KeepAlive = true;
                 request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
@@ -239,7 +242,7 @@ namespace HAC.API.HAC
             }
         }
 
-        private string getRawOldGradeData(CookieContainer cookies, Uri requestUri)
+        private string getRawOldGradeData(CookieContainer cookies, Uri requestUri, string link)
         {
             string s = string.Empty;
             foreach (Cookie cookie in cookies.GetCookies(requestUri))
@@ -248,7 +251,7 @@ namespace HAC.API.HAC
             }
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri("https://hac.friscoisd.org/HomeAccess/Content/Student/Transcript.aspx"));
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri($"{link}/HomeAccess/Content/Student/Transcript.aspx"));
 
                 request.KeepAlive = true;
                 request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
@@ -265,7 +268,7 @@ namespace HAC.API.HAC
             }
         }
 
-        private string getRawReportCardData(CookieContainer cookies, Uri requestUri)
+        private string getRawReportCardData(CookieContainer cookies, Uri requestUri, string link)
         {
             string s = string.Empty;
             foreach (Cookie cookie in cookies.GetCookies(requestUri))
@@ -274,7 +277,7 @@ namespace HAC.API.HAC
             }
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri("https://hac.friscoisd.org/HomeAccess/Content/Student/ReportCards.aspx"));
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri($"{link}/HomeAccess/Content/Student/ReportCards.aspx"));
 
                 request.KeepAlive = true;
                 request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";

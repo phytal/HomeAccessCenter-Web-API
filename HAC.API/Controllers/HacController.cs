@@ -27,20 +27,25 @@ namespace HAC.API.Controllers
         [HttpGet]
         public Response Get()
         {
-            // Retrieve the value of "username" from the URL Request.
+            // Retrieves the username, password, and hacLink values from the URL Request.
+            string hacLink = HttpContext.Request.Query["hacLink"];
             string username = HttpContext.Request.Query["username"];
             string password = HttpContext.Request.Query["password"];
+            
+            if (string.IsNullOrEmpty(hacLink)) 
+                return new Response { Message = "Error 404: Empty hacLink parameter." }; 
             if (string.IsNullOrEmpty(username)) 
-                return new Response { Message = "Error 404: Empty username parameter." };
-            else if (string.IsNullOrEmpty(password))
+                return new Response { Message = "Error 404: Empty username parameter." }; 
+            if (string.IsNullOrEmpty(password))
                 return new Response { Message = "Error 404: Empty password parameter." };
 
-            _logger.LogInformation("Recieved a request.\n" +
+            _logger.LogInformation("Received a request.\n" +
+                $"Link: {hacLink}\n" +
                 $"Username: {username}\n" +
                 $"Password: {password}");
 
             var hac = new HAC.HAC();
-            HttpWebResponse response = hac.Login(username, password, out var container);
+            HttpWebResponse response = hac.Login(hacLink, username, password, out var container);
 
             if (!hac.isValidLogin(response)) //checks if login creds are true
             {
@@ -50,7 +55,7 @@ namespace HAC.API.Controllers
                     Message = errorText
                 };
             }
-            var result = hac.GetCourses(container, response.ResponseUri);//logs in and fetches grades
+            var result = hac.GetCourses(container, response.ResponseUri, hacLink);//logs in and fetches grades
 
             return result;
         }
