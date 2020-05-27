@@ -11,12 +11,14 @@ This project allows you to access student data from HAC easily through a web API
 
 The home directory for this web api is `https://hac-web-api-production.herokuapp.com/api/hac`
 
-To access a student's information, add the parameter **username** and **password** to the end of the link.
+To access a student's information, add the parameter **hacLink**, **username**, and **password** to the end of the link.
+
+> Note: hacLink corresponds with the following format: https://hac.friscoisd.org
 
 ### Example
 
 ```
-https://hac-web-api-production.herokuapp.com/api/hac?username=Smith.J&password=Password123
+https://hac-web-api-production.herokuapp.com/api/hac?hacLink=https://hac.friscoisd.org&username=Smith.J&password=Password123
 ```
 
 ## Donation
