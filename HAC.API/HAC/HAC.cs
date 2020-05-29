@@ -54,7 +54,7 @@ namespace HAC.API.HAC
         {
             var oldAssignmentList = new List<Course>();
             var assignmentList = new List<Course>();
-            var reportCardCourses = new ReportCardList[4];
+            var reportCardCourses = new IEnumerable<Course>[4];
             try
             {
                 //report card
@@ -201,14 +201,8 @@ namespace HAC.API.HAC
             return new Response
             {
                 Message = "Success.",
-                CurrentAssignmentList = new CurrentAssignmentList
-                {
-                    List = assignmentList
-                },
-                OldAssignmentList = new OldAssignmentList
-                {
-                    List = oldAssignmentList
-                },
+                CurrentAssignmentList = assignmentList,
+                OldAssignmentList =  oldAssignmentList,
                 ReportCardList1 = reportCardCourses[0],
                 ReportCardList2 = reportCardCourses[1],
                 ReportCardList3 = reportCardCourses[2],

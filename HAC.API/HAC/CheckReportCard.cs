@@ -8,13 +8,13 @@ namespace HAC.API.HAC
 {
     public class CheckReportCard
     {
-        public static ReportCardList[] CheckReportCardTask(HtmlDocument reportCardDocument)
+        public static IEnumerable<Course>[] CheckReportCardTask(HtmlDocument reportCardDocument)
         {
             var coursesFromReportCard1 = new List<Course>();
             var coursesFromReportCard2 = new List<Course>();
             var coursesFromReportCard3 = new List<Course>();
             var coursesFromReportCard4 = new List<Course>();
-            var reportCardList = new ReportCardList[4];
+            var reportCardList = new IEnumerable<Course>[4];
 
             //checks the reporting period
             var reportCardHeader = reportCardDocument.DocumentNode.Descendants("div")
@@ -41,10 +41,7 @@ namespace HAC.API.HAC
                     }
                     coursesFromReportCard4.Add(course);
                 }
-                reportCardList[3] = new ReportCardList
-                {
-                    List = coursesFromReportCard4
-                };
+                reportCardList[3] = coursesFromReportCard4;
             }
             
             if (reportingPeriod >= 3)
@@ -61,10 +58,7 @@ namespace HAC.API.HAC
                     }
                     coursesFromReportCard3.Add(course);
                 }
-                reportCardList[2] = new ReportCardList
-                {
-                    List = coursesFromReportCard3
-                };
+                reportCardList[2] = coursesFromReportCard3;
             }
 
             if (reportingPeriod >= 2)
@@ -81,10 +75,7 @@ namespace HAC.API.HAC
                     }
                     coursesFromReportCard2.Add(course);
                 }
-                reportCardList[1] = new ReportCardList
-                {
-                    List = coursesFromReportCard2
-                };
+                reportCardList[1] = coursesFromReportCard2;
             }
 
             if (reportingPeriod >= 1)
@@ -94,10 +85,7 @@ namespace HAC.API.HAC
                 {
                     coursesFromReportCard1.Add(course);
                 }
-                reportCardList[0] = new ReportCardList
-                {
-                    List = coursesFromReportCard1
-                };
+                reportCardList[0] = coursesFromReportCard1;
             }
 
             return reportCardList;
