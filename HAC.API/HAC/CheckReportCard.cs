@@ -11,77 +11,38 @@ namespace HAC.API.HAC
         public static IEnumerable<Course>[] CheckReportCardTask(HtmlDocument reportCardDocument)
         {
             var coursesFromReportCard1 = new List<Course>();
-            var coursesFromReportCard2 = new List<Course>();
-            var coursesFromReportCard3 = new List<Course>();
-            var coursesFromReportCard4 = new List<Course>();
             var reportCardList = new IEnumerable<Course>[4];
 
             //checks the reporting period
             var reportCardHeader = reportCardDocument.DocumentNode.Descendants("div")
-                .Where(node => node.GetAttributeValue("class", "")
-                    .Equals($"sg-header")).FirstOrDefault();
+                .FirstOrDefault(node => node.GetAttributeValue("class", "")
+                    .Equals($"sg-header"));
             //gets reporting period number
             var reportCardNumber = reportCardHeader.Descendants("label")
-                    .Where(node => node.GetAttributeValue("id", "")
-                        .Equals($"plnMain_lblTitle")).FirstOrDefault().InnerText.Trim();
+                    .FirstOrDefault(node => node.GetAttributeValue("id", "")
+                        .Equals($"plnMain_lblTitle")).InnerText.Trim();
 
             var reportingPeriod = byte.Parse(reportCardNumber.ElementAt(33).ToString());
             
             if (reportingPeriod == 4)
             {
-                var reportingPeriod3Courses = ReportCardScraping(reportCardDocument, 4);
-                foreach (var course in reportingPeriod3Courses)
-                {
-                    if (coursesFromReportCard4.Contains(course))
-                    {
-                        var existingCourseIndex = coursesFromReportCard4.FindIndex(x => x.courseID == course.courseID);
-                        Course existingCourse = coursesFromReportCard4.ElementAt(existingCourseIndex);
-                        double newAvg = (existingCourse.courseAverage + course.courseAverage) / 2;
-                        existingCourse.courseAverage = newAvg;
-                    }
-                    coursesFromReportCard4.Add(course);
-                }
-                reportCardList[3] = coursesFromReportCard4;
+                reportCardList[3] = GetReportCard(reportCardDocument, 4);
             }
             
             if (reportingPeriod >= 3)
             {
-                var reportingPeriod3Courses = ReportCardScraping(reportCardDocument, 3);
-                foreach (var course in reportingPeriod3Courses)
-                {
-                    if (coursesFromReportCard3.Contains(course))
-                    {
-                        var existingCourseIndex = coursesFromReportCard3.FindIndex(x => x.courseID == course.courseID);
-                        Course existingCourse = coursesFromReportCard3.ElementAt(existingCourseIndex);
-                        double newAvg = (existingCourse.courseAverage + course.courseAverage) / 2;
-                        existingCourse.courseAverage = newAvg;
-                    }
-                    coursesFromReportCard3.Add(course);
-                }
-                reportCardList[2] = coursesFromReportCard3;
+                reportCardList[2] = GetReportCard(reportCardDocument, 3);;
             }
 
             if (reportingPeriod >= 2)
             {
-                List<Course> reportingPeriod2Courses = ReportCardScraping(reportCardDocument, 2);
-                foreach (Course course in reportingPeriod2Courses)
-                {
-                    if (coursesFromReportCard2.Contains(course))
-                    {
-                        var existingCourseIndex = coursesFromReportCard2.FindIndex(x => x.courseID == course.courseID);
-                        Course existingCourse = coursesFromReportCard2.ElementAt(existingCourseIndex);
-                        double newAvg = (existingCourse.courseAverage + course.courseAverage) / 2;
-                        existingCourse.courseAverage = newAvg;
-                    }
-                    coursesFromReportCard2.Add(course);
-                }
-                reportCardList[1] = coursesFromReportCard2;
+                reportCardList[1] = GetReportCard(reportCardDocument, 2);;
             }
 
             if (reportingPeriod >= 1)
             {
                 List<Course> reportingPeriod1Courses = ReportCardScraping(reportCardDocument, 1);
-                foreach (Course course in reportingPeriod1Courses)
+                foreach (var course in reportingPeriod1Courses)
                 {
                     coursesFromReportCard1.Add(course);
                 }
@@ -106,8 +67,8 @@ namespace HAC.API.HAC
             foreach (var reportCardCourse in reportCardCourseItemList) //foreach report card
             {
                 var courseName = reportCardCourse.Descendants("a") //gets course name
-                    .Where(node => node.GetAttributeValue("href", "")
-                        .Equals($"#")).FirstOrDefault().InnerText.Trim();
+                    .FirstOrDefault(node => node.GetAttributeValue("href", "")
+                        .Equals($"#")).InnerText.Trim();
 
                 var courseID = reportCardCourse.Descendants("td") //gets course id
                     .FirstOrDefault().InnerText.Trim();
@@ -130,7 +91,7 @@ namespace HAC.API.HAC
                         break;
                 }
 
-                List<string> grades = new List<string>();
+                var grades = new List<string>{};
 
                 grades.Add(reportCardCourse.Descendants("a") //gets course grade
                     .ElementAt(elementNumber).InnerText.Trim());
@@ -148,7 +109,7 @@ namespace HAC.API.HAC
                     courseName = courseName.Replace(courseName.Substring(courseName.Length - 2), "");
                     while (courseName.LastOrDefault() == ' ' || courseName.LastOrDefault() == '-')
                     {
-                        courseName = courseName.TrimEnd(courseName[courseName.Length - 1]);
+                        courseName = courseName.TrimEnd(courseName[^1]);
                     }
                 }
 
@@ -158,7 +119,7 @@ namespace HAC.API.HAC
                 while (courseID.LastOrDefault() == ' ' || courseID.LastOrDefault() == '-' ||
                        courseID.LastOrDefault() == 'A' || courseID.LastOrDefault() == 'B')
                 {
-                    courseID = courseID.TrimEnd(courseID[courseID.Length - 1]);
+                    courseID = courseID.TrimEnd(courseID[^1]);
                 }
 
                 var avg = 0;
@@ -168,13 +129,32 @@ namespace HAC.API.HAC
                 courseGrade = avg.ToString();
                 reportCardAssignmentList.Add(new Course
                 {
-                    courseID = courseID,
-                    courseName = courseName,
-                    courseAverage = double.Parse(courseGrade)
+                    CourseId = courseID,
+                    CourseName = courseName,
+                    CourseAverage = double.Parse(courseGrade)
                 }); //turns the grade (string) received into a double 
             }
 
             return reportCardAssignmentList;
+        }
+
+        private static IEnumerable<Course> GetReportCard(HtmlDocument reportCardDocument, int markingPeriod)
+        {
+            var coursesFromReportCard = new List<Course>();
+            var reportingPeriodCourses = ReportCardScraping(reportCardDocument, markingPeriod);
+            foreach (var course in reportingPeriodCourses)
+            {
+                if (coursesFromReportCard.Contains(course))
+                {
+                    var existingCourseIndex = coursesFromReportCard.FindIndex(x => x.CourseId == course.CourseId);
+                    Course existingCourse = coursesFromReportCard.ElementAt(existingCourseIndex);
+                    var newAvg = (existingCourse.CourseAverage + course.CourseAverage) / 2;
+                    existingCourse.CourseAverage = newAvg;
+                }
+                coursesFromReportCard.Add(course);
+            }
+
+            return coursesFromReportCard;
         }
     }
 }

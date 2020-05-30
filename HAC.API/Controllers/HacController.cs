@@ -47,9 +47,9 @@ namespace HAC.API.Controllers
             var hac = new HAC.HAC();
             HttpWebResponse response = hac.Login(hacLink, username, password, out var container);
 
-            if (!hac.isValidLogin(response)) //checks if login creds are true
+            if (!hac.IsValidLogin(response)) //checks if login creds are true
             {
-                string errorText = "Either the HAC username or password is incorrect.";
+                const string errorText = "Either the HAC username or password is incorrect.";
                 return new Response
                 {
                     Message = errorText

@@ -18,7 +18,7 @@ namespace HAC.API.HAC
             container = new CookieContainer();
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(
+                HttpWebRequest request = (HttpWebRequest) WebRequest.Create(
                     $"{link}/HomeAccess/Account/LogOn?ReturnUrl=%2fHomeAccess%2fClasses%2fClasswork");
 
                 request.KeepAlive = true;
@@ -42,7 +42,7 @@ namespace HAC.API.HAC
                 stream.Write(postBytes, 0, postBytes.Length);
                 stream.Close();
 
-                return (HttpWebResponse)request.GetResponse();
+                return (HttpWebResponse) request.GetResponse();
             }
             catch
             {
@@ -58,12 +58,12 @@ namespace HAC.API.HAC
             try
             {
                 //report card
-                string reportCardData = getRawReportCardData(cookies, requestUri, link);
+                string reportCardData = GetRawReportCardData(cookies, requestUri, link);
                 var reportCardHtmlDocument = new HtmlDocument();
                 reportCardHtmlDocument.LoadHtml(reportCardData);
                 reportCardCourses = CheckReportCard.CheckReportCardTask(reportCardHtmlDocument);
                 //current courses
-                string data = getRawGradeData(cookies, requestUri, link);
+                string data = GetRawGradeData(cookies, requestUri, link);
 
                 var htmlDocument = new HtmlDocument();
                 htmlDocument.LoadHtml(data);
@@ -76,8 +76,8 @@ namespace HAC.API.HAC
                 foreach (var courseHtmlItem in courseHtml)
                 {
                     var course = courseHtmlItem.Descendants("a")
-                        .Where(node => node.GetAttributeValue("class", "")
-                            .Equals("sg-header-heading")).FirstOrDefault().InnerText.Trim();
+                        .FirstOrDefault(node => node.GetAttributeValue("class", "")
+                            .Equals("sg-header-heading")).InnerText.Trim();
                     var courseName = x.Replace(course, @"").Trim();
                     //removes semester 
                     while (courseName.Substring(courseName.Length - 2) == "S1" ||
@@ -86,25 +86,25 @@ namespace HAC.API.HAC
                         courseName = courseName.Replace(courseName.Substring(courseName.Length - 2), "");
                         while (courseName.LastOrDefault() == ' ' || courseName.LastOrDefault() == '-')
                         {
-                            courseName = courseName.TrimEnd(courseName[courseName.Length - 1]);
+                            courseName = courseName.TrimEnd(courseName[^1]);
                         }
                     }
 
-                    var courseID = x.Match(course).ToString().Trim();
-                    courseID = courseID.Remove(courseID.Length - 4);
+                    var courseId = x.Match(course).ToString().Trim();
+                    courseId = courseId.Remove(courseId.Length - 4);
                     //removes excess
-                    while (courseID.LastOrDefault() == ' ' || courseID.LastOrDefault() == '-' ||
-                           courseID.LastOrDefault() == 'A' || courseID.LastOrDefault() == 'B')
+                    while (courseId.LastOrDefault() == ' ' || courseId.LastOrDefault() == '-' ||
+                           courseId.LastOrDefault() == 'A' || courseId.LastOrDefault() == 'B')
                     {
-                        courseID = courseID.TrimEnd(courseID[courseID.Length - 1]);
+                        courseId = courseId.TrimEnd(courseId[^1]);
                     }
 
                     string courseGrade;
                     try
                     {
                         courseGrade = courseHtmlItem.Descendants("span")
-                            .Where(node => node.GetAttributeValue("class", "")
-                                .Equals("sg-header-heading sg-right")).FirstOrDefault().InnerText.Trim().Remove(0, 15)
+                            .FirstOrDefault(node => node.GetAttributeValue("class", "")
+                                .Equals("sg-header-heading sg-right"))?.InnerText.Trim().Remove(0, 15)
                             .TrimEnd('%');
                     }
                     catch
@@ -112,17 +112,18 @@ namespace HAC.API.HAC
                         continue;
                     }
 
-                    assignmentList.Add(new Course { courseName = courseName, courseID = courseID, courseAverage = double.Parse(courseGrade) });
+                    assignmentList.Add(new Course
+                        {CourseName = courseName, CourseId = courseId, CourseAverage = double.Parse(courseGrade)});
                 }
 
                 //past courses 
-                string oldData = getRawOldGradeData(cookies, requestUri, link);
+                string oldData = GetRawOldGradeData(cookies, requestUri, link);
 
                 var oldHtmlDocument = new HtmlDocument();
                 oldHtmlDocument.LoadHtml(oldData); //gets all of the years
                 byte numCourses = 0; //no one will exceed 255 
                 for (byte i = 0; i >= 0; i++)
-                //what this does is tries to get as many courses as possible until it receives an error, then pass on that number to get that number of courses
+                    //what this does is tries to get as many courses as possible until it receives an error, then pass on that number to get that number of courses
                 {
                     try //get number of years
                     {
@@ -139,6 +140,7 @@ namespace HAC.API.HAC
 
                     numCourses = i;
                 }
+
                 //note: numCourses will always be 1 less because of indexes
                 for (byte i = 0; i <= numCourses - 1; i++) //get all years (-1 to exclude the present year)
                 {
@@ -154,22 +156,23 @@ namespace HAC.API.HAC
                             .ElementAt(1).InnerText
                             .Trim(); //course name is stored at the second instance of td
 
-                        var courseID = courseHtmlItem.Descendants("td") //gets course id
+                        var courseId = courseHtmlItem.Descendants("td") //gets course id
                             .ElementAt(0).InnerText
                             .Trim(); //course name is stored at the first instance of td
 
-                        courseID = courseID.Remove(courseID.Length - 4);
+                        courseId = courseId.Remove(courseId.Length - 4);
 
-                        while (courseID.LastOrDefault() == ' ' || courseID.LastOrDefault() == '-' ||
-                               courseID.LastOrDefault() == 'A' || courseID.LastOrDefault() == 'B' || courseID.LastOrDefault() == 'Y' || courseID.LastOrDefault() == 'M')
+                        while (courseId.LastOrDefault() == ' ' || courseId.LastOrDefault() == '-' ||
+                               courseId.LastOrDefault() == 'A' || courseId.LastOrDefault() == 'B' ||
+                               courseId.LastOrDefault() == 'Y' || courseId.LastOrDefault() == 'M')
                         {
-                            courseID = courseID.TrimEnd(courseID[courseID.Length - 1]);
+                            courseId = courseId.TrimEnd(courseId[^1]);
                         }
 
                         for (byte j = 4; j <= 4 && j > 1; j--)
-                        //gets grade, starts from last element, which is overall avg, if nothing, goes to second semester, then first semester
+                            //gets grade, starts from last element, which is overall avg, if nothing, goes to second semester, then first semester
                         {
-                            var courseGrade = "";//finalized course grade
+                            var courseGrade = ""; //finalized course grade
                             var courseGradeHtml = courseHtmlItem.Descendants("td") //gets course grade
                                 .ElementAt(j).InnerText;
 
@@ -177,13 +180,15 @@ namespace HAC.API.HAC
                             {
                                 continue; //if it is not a grade and is empty then retry
                             }
-                            if (j == 3) break; //if the course avg is available then you dont need to get the semester grades
+
+                            if (j == 3)
+                                break; //if the course avg is available then you dont need to get the semester grades
                             courseGrade = courseGradeHtml;
                             oldAssignmentList.Add(new Course
                             {
-                                courseName = courseName,
-                                courseID = courseID,
-                                courseAverage = double.Parse(courseGrade)
+                                CourseName = courseName,
+                                CourseId = courseId,
+                                CourseAverage = double.Parse(courseGrade)
                             }); //turns the grade (string) received into a double 
                         }
                     }
@@ -202,7 +207,7 @@ namespace HAC.API.HAC
             {
                 Message = "Success.",
                 CurrentAssignmentList = assignmentList,
-                OldAssignmentList =  oldAssignmentList,
+                OldAssignmentList = oldAssignmentList,
                 ReportCardList1 = reportCardCourses[0],
                 ReportCardList2 = reportCardCourses[1],
                 ReportCardList3 = reportCardCourses[2],
@@ -210,16 +215,18 @@ namespace HAC.API.HAC
             };
         }
 
-        private string getRawGradeData(CookieContainer cookies, Uri requestUri, string link)
+        private string GetRawGradeData(CookieContainer cookies, Uri requestUri, string link)
         {
             string s = string.Empty;
             foreach (Cookie cookie in cookies.GetCookies(requestUri))
             {
                 s += (cookie.Name + "=" + cookie.Value + "; ");
             }
+
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri($"{link}/HomeAccess/Content/Student/Assignments.aspx"));
+                HttpWebRequest request =
+                    (HttpWebRequest) WebRequest.Create(new Uri($"{link}/HomeAccess/Content/Student/Assignments.aspx"));
 
                 request.KeepAlive = true;
                 request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
@@ -228,7 +235,7 @@ namespace HAC.API.HAC
                 request.Headers.Set(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
                 request.Headers.Set(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.8");
                 request.Headers.Set(HttpRequestHeader.Cookie, s);
-                return readResponse((HttpWebResponse)request.GetResponse());
+                return ReadResponse((HttpWebResponse) request.GetResponse());
             }
             catch
             {
@@ -236,16 +243,18 @@ namespace HAC.API.HAC
             }
         }
 
-        private string getRawOldGradeData(CookieContainer cookies, Uri requestUri, string link)
+        private string GetRawOldGradeData(CookieContainer cookies, Uri requestUri, string link)
         {
             string s = string.Empty;
             foreach (Cookie cookie in cookies.GetCookies(requestUri))
             {
                 s += (cookie.Name + "=" + cookie.Value + "; ");
             }
+
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri($"{link}/HomeAccess/Content/Student/Transcript.aspx"));
+                HttpWebRequest request =
+                    (HttpWebRequest) WebRequest.Create(new Uri($"{link}/HomeAccess/Content/Student/Transcript.aspx"));
 
                 request.KeepAlive = true;
                 request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
@@ -254,7 +263,7 @@ namespace HAC.API.HAC
                 request.Headers.Set(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
                 request.Headers.Set(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.8");
                 request.Headers.Set(HttpRequestHeader.Cookie, s);
-                return readResponse((HttpWebResponse)request.GetResponse());
+                return ReadResponse((HttpWebResponse) request.GetResponse());
             }
             catch
             {
@@ -262,16 +271,18 @@ namespace HAC.API.HAC
             }
         }
 
-        private string getRawReportCardData(CookieContainer cookies, Uri requestUri, string link)
+        private string GetRawReportCardData(CookieContainer cookies, Uri requestUri, string link)
         {
             string s = string.Empty;
             foreach (Cookie cookie in cookies.GetCookies(requestUri))
             {
                 s += (cookie.Name + "=" + cookie.Value + "; ");
             }
+
             try
             {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri($"{link}/HomeAccess/Content/Student/ReportCards.aspx"));
+                HttpWebRequest request =
+                    (HttpWebRequest) WebRequest.Create(new Uri($"{link}/HomeAccess/Content/Student/ReportCards.aspx"));
 
                 request.KeepAlive = true;
                 request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
@@ -280,7 +291,7 @@ namespace HAC.API.HAC
                 request.Headers.Set(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
                 request.Headers.Set(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.8");
                 request.Headers.Set(HttpRequestHeader.Cookie, s);
-                return readResponse((HttpWebResponse)request.GetResponse());
+                return ReadResponse((HttpWebResponse) request.GetResponse());
             }
             catch
             {
@@ -288,31 +299,26 @@ namespace HAC.API.HAC
             }
         }
 
-        public bool isValidLogin(HttpWebResponse response)
+        public bool IsValidLogin(HttpWebResponse response)
         {
-            return !readResponse(response).Contains("You have entered an incorrect HAC ID or password");
+            return !ReadResponse(response).Contains("You have entered an incorrect HAC ID or password");
         }
 
-        private string readResponse(HttpWebResponse response)
+        private string ReadResponse(HttpWebResponse response)
         {
-            using (Stream responseStream = response.GetResponseStream())
+            using Stream responseStream = response.GetResponseStream();
+            Stream streamToRead = responseStream;
+            if (response.ContentEncoding.ToLower().Contains("gzip"))
             {
-                Stream streamToRead = responseStream;
-                if (response.ContentEncoding.ToLower().Contains("gzip"))
-                {
-                    streamToRead = new GZipStream(streamToRead, CompressionMode.Decompress);
-                }
-                else if (response.ContentEncoding.ToLower().Contains("deflate"))
-                {
-                    streamToRead = new DeflateStream(streamToRead, CompressionMode.Decompress);
-                }
-
-                using (StreamReader streamReader = new StreamReader(streamToRead, Encoding.UTF8))
-                {
-                    return streamReader.ReadToEnd();
-                }
+                streamToRead = new GZipStream(streamToRead, CompressionMode.Decompress);
             }
+            else if (response.ContentEncoding.ToLower().Contains("deflate"))
+            {
+                streamToRead = new DeflateStream(streamToRead, CompressionMode.Decompress);
+            }
+
+            using StreamReader streamReader = new StreamReader(streamToRead, Encoding.UTF8);
+            return streamReader.ReadToEnd();
         }
     }
-
 }

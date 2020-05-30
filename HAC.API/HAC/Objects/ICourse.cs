@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace HAC.API.HAC.Objects
 {
-    public class Course : ICourse
+    public interface ICourse
     {
         public string CourseId { get; set; }
         public string CourseName { get; set; }
