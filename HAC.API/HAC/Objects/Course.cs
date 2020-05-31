@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace HAC.API.HAC.Objects
 {
-    public class Course
+    public class Course : ICourse
     {
-        public string courseID { get; set; }
-        public string courseName { get; set; }
-        public double courseAverage { get; set; }
+        public string CourseId { get; set; }
+        public string CourseName { get; set; }
+        public double CourseAverage { get; set; }
     }
 }
