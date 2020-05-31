@@ -53,7 +53,7 @@ namespace HAC.API.HAC
         public Response GetCourses(CookieContainer cookies, Uri requestUri, string link)
         {
             var oldAssignmentList = new List<Course>();
-            var assignmentList = new List<Course>();
+            var assignmentList = new List<AssignmentCourse>();
             var reportCardCourses = new IEnumerable<Course>[4];
             try
             {
@@ -112,8 +112,8 @@ namespace HAC.API.HAC
                         continue;
                     }
 
-                    assignmentList.Add(new Course
-                        {CourseName = courseName, CourseId = courseId, CourseAverage = double.Parse(courseGrade)});
+                    assignmentList.Add(new AssignmentCourse()
+                        {CourseName = courseName, CourseId = courseId, CourseAverage = double.Parse(courseGrade), Assignments = new List<Assignment>()});
                 }
 
                 //past courses 
