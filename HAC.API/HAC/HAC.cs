@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using HAC.API.HAC.Objects;
+using HAC.API.Helpers;
 using HtmlAgilityPack;
 
 namespace HAC.API.HAC
@@ -189,7 +190,7 @@ namespace HAC.API.HAC
         private List<List<AssignmentCourse>> GetAssignmentsFromMarkingPeriod(CookieContainer cookies, Uri requestUri, string link)
         {
             //var assignmentList = new List<AssignmentCourse>();
-            var assignmentList = new List<List<AssignmentCourse>>();
+            var courseList = new List<List<AssignmentCourse>>();
             var documentList = new List<HtmlDocument>();
             string data = GetData(cookies, requestUri, link, ResponseType.Assignments);
 
@@ -209,7 +210,7 @@ namespace HAC.API.HAC
 
             foreach (var document in documentList)
             {
-                var localAssignmentList = new List<AssignmentCourse>();
+                var localCourseList = new List<AssignmentCourse>();
                 var courseHtml = document.DocumentNode.Descendants("div")
                     .Where(node => node.GetAttributeValue("class", "")
                         .Equals("AssignmentClass")).ToList();
@@ -254,17 +255,99 @@ namespace HAC.API.HAC
                         continue;
                     }
 
-                    localAssignmentList.Add(new AssignmentCourse
+                    var assignmentList = new List<Assignment>();
+                    
+                    //gets all the assignments for a course
+                    var assignmentTable = courseHtmlItem.Descendants("table").FirstOrDefault(node =>
+                        node.GetAttributeValue("class", "").Equals("sg-asp-table"));
+                    
+                    foreach (var assignmentNode in assignmentTable.Descendants("tr").Where(node =>
+                        node.GetAttributeValue("class", "").Equals("sg-asp-table-data-row")))
+                    {
+                        var assignment = new Assignment();
+                        Regex pattern = new Regex(".+:\\s");
+                        var assignmentData = assignmentNode.ChildNodes[3].Descendants("a").FirstOrDefault().Attributes["title"].Value;
+                        var parsedAssignmentData = Regex.Replace(assignmentData,".+:", "").Trim();
+                        
+                        
+                        foreach (var line in new LineReader(() => new StringReader(parsedAssignmentData)).WithIndex())
+                        {
+                            switch (line.index)
+                            {
+                                case 0:
+                                    assignment.Title = line.item.Trim();
+                                    break;
+                                case 1:
+                                    assignment.Name = FixAssignmentTitle(line.item.Trim());
+                                    break;
+                                case 2:
+                                    assignment.Category = line.item.Trim();
+                                    break;
+                                case 3:
+                                    var date = DateTime.Parse(line.item.Trim());
+                                    assignment.DueDate = date;
+                                    break;
+                                case 4:
+                                    assignment.MaxPoints = double.Parse(line.item.Trim());
+                                    break;
+                                case 5:
+                                    assignment.CanBeDropped = line.item.Contains("Y");
+                                    break;
+                                case 6:
+                                    assignment.ExtraCredit = line.item.Contains("Y");
+                                    break;
+                                case 7:
+                                    assignment.HasAttachments = line.item.Contains("Y");
+                                    break;
+                            }
+                        }
+                        
+                        var score  = assignmentNode.ChildNodes[5].InnerText.Trim();
+
+                        assignment.Status = score switch
+                        {
+                            "M" => AssignmentStatus.Missing,
+                            "I" => AssignmentStatus.Incomplete,
+                            "EXC" => AssignmentStatus.Excused,
+                            "L" => AssignmentStatus.Late,
+                            _ => AssignmentStatus.Upcoming
+                        };
+                        
+                        if (double.TryParse(score, out var points))
+                            assignment.Status = AssignmentStatus.Complete;
+                        
+                        assignment.Score = score;
+                        assignmentList.Add(assignment);
+                    }
+
+                    localCourseList.Add(new AssignmentCourse
                     {
                         CourseName = courseName, CourseId = courseId, CourseAverage = double.Parse(courseGrade),
-                        Assignments = new List<Assignment>()
+                        Assignments = assignmentList
                     });
 
                 }
-                assignmentList.Add(localAssignmentList);
+                courseList.Add(localCourseList);
             }
 
-            return assignmentList;
+            return courseList;
+        }
+
+        //Update as needed
+        private string FixAssignmentTitle(string s)
+        {
+            var symbols = new Dictionary<string,string>
+            {
+                {"&quot;", "\""},
+                {"&amp;", "&"}
+            };
+
+            foreach (var symbol in symbols.Keys)
+            {
+                s = s.Replace(symbol, symbols[symbol]);
+            }
+
+            return s;
         }
 
 
