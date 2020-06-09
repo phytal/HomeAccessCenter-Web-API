@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace HAC.API.HAC.Objects
+namespace HAC.API.Data.Objects
 {
     public class AssignmentCourse : ICourse
     {

@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using HAC.API.HAC.Objects;
+using HAC.API.Data.Objects;
 using HtmlDocument = HtmlAgilityPack.HtmlDocument;
 
-namespace HAC.API.HAC
+namespace HAC.API.Data
 {
-    public class CheckReportCard
+    public static class ReportCard
     {
         public static IEnumerable<Course>[] CheckReportCardTask(HtmlDocument reportCardDocument)
         {
@@ -73,25 +72,17 @@ namespace HAC.API.HAC
                 var courseID = reportCardCourse.Descendants("td") //gets course id
                     .FirstOrDefault().InnerText.Trim();
 
-                var courseGrade = ""; //finalized course grade
-                int elementNumber = 0;
-                switch (markingPeriod)
+                string courseGrade; //finalized course grade
+                var elementNumber = markingPeriod switch
                 {
-                    case 1:
-                        elementNumber = 2;
-                        break;
-                    case 2:
-                        elementNumber = 4;
-                        break;
-                    case 3:
-                        elementNumber = 5;
-                        break;
-                    case 4:
-                        elementNumber = 7;
-                        break;
-                }
+                    1 => 2,
+                    2 => 4,
+                    3 => 5,
+                    4 => 7,
+                    _ => 0
+                };
 
-                var grades = new List<string>{};
+                var grades = new List<string>();
 
                 grades.Add(reportCardCourse.Descendants("a") //gets course grade
                     .ElementAt(elementNumber).InnerText.Trim());

@@ -3,12 +3,12 @@ using System.Linq;
 using System.Text;
 using HtmlAgilityPack;
 
-namespace HAC.API.HAC
+namespace HAC.API.Data
 {
     public class GradesForm
     {
-        private Dictionary<string, string> reportingPeriodValues;
-        private Dictionary<string, string> runChangeForm;
+        private readonly Dictionary<string, string> reportingPeriodValues;
+        private readonly Dictionary<string, string> runChangeForm;
     
         public GradesForm(HtmlDocument document)
         {
@@ -18,12 +18,12 @@ namespace HAC.API.HAC
             InitRunChangeForm(document);
         }
         
-        public List<string> ReportingPeriodNames()
+        public IEnumerable<string> ReportingPeriodNames()
         {
             return reportingPeriodValues.Keys.ToList();
         }
 
-        void InitReportingRunValues(HtmlDocument document)
+        private void InitReportingRunValues(HtmlDocument document)
         {
             int i = 0;
             foreach (var runOption in document.GetElementbyId("plnMain_ddlReportCardRuns").ChildNodes)
@@ -49,7 +49,7 @@ namespace HAC.API.HAC
             return bodyBuilder.ToString().Remove(bodyBuilder.Length - 1);
         }
 
-        void InitRunChangeForm(HtmlDocument document)
+        private void InitRunChangeForm(HtmlDocument document)
         {
             foreach (var input in document.DocumentNode.Descendants("input"))
             {

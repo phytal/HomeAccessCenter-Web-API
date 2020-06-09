@@ -4,13 +4,13 @@ using Microsoft.Extensions.Logging;
 
 namespace HAC.API.Controllers
 {
-    [Route("api/hac")]
+    [Route("api/courses")]
     [ApiController]
-    public class HacController : ControllerBase
+    public class CourseController : ControllerBase
     {
-        private readonly ILogger<HacController> _logger;
+        private readonly ILogger<CourseController> _logger;
 
-        public HacController(ILogger<HacController> logger)
+        public CourseController(ILogger<CourseController> logger)
         {
             _logger = logger;
         }

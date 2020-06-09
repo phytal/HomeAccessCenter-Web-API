@@ -1,9 +1,4 @@
-﻿﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace HAC.API.HAC.Objects
+﻿namespace HAC.API.Data.Objects
 {
     public class Course : ICourse
     {
