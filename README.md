@@ -10,10 +10,18 @@ This project allows you to access student data from HAC easily through a web API
 ## Usage 
 
 The home directory for this web api is `https://hac-web-api-production.herokuapp.com/api/hac`
+This will return all of the data for a student, but will take time. Instead it is preferred to use separate endpoints.
 
 To access a student's information, add the parameter **hacLink**, **username**, and **password** to the end of the link.
 
 > Note: hacLink corresponds with the following format: https://hac.friscoisd.org
+
+### Endpoints
+
+- `api/hac` - returns all course information for a student
+- `api/courses` - returns course information for present courses
+- `api/reportCard` - returns grade information from past report cards
+- `pi/transcript` - returns past grade information from transcript
 
 ### Example
 
@@ -21,6 +29,8 @@ To access a student's information, add the parameter **hacLink**, **username**, 
 https://hac-web-api-production.herokuapp.com/api/hac?hacLink=https://hac.friscoisd.org&username=Smith.J&password=Password123
 ```
 
+## Contribution
+If you would like to contribute to this project, feel free to fork this repository and push a pull request, which will be reviewed before merging.
 ## Donation
 
 If this project helpd you, you can give me a cup of coffee ☕
