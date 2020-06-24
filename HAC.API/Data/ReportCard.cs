@@ -7,10 +7,9 @@ namespace HAC.API.Data
 {
     public static class ReportCard
     {
-        public static IEnumerable<Course>[] CheckReportCardTask(HtmlDocument reportCardDocument)
+        public static List<List<Course>> CheckReportCardTask(HtmlDocument reportCardDocument)
         {
-            var coursesFromReportCard1 = new List<Course>();
-            var reportCardList = new IEnumerable<Course>[4];
+            var reportCardList = new List<List<Course>>();
 
             //checks the reporting period
             var reportCardHeader = reportCardDocument.DocumentNode.Descendants("div")
@@ -22,36 +21,16 @@ namespace HAC.API.Data
                         .Equals($"plnMain_lblTitle")).InnerText.Trim();
 
             var reportingPeriod = byte.Parse(reportCardNumber.ElementAt(33).ToString());
-            
-            if (reportingPeriod == 4)
-            {
-                reportCardList[3] = GetReportCard(reportCardDocument, 4);
-            }
-            
-            if (reportingPeriod >= 3)
-            {
-                reportCardList[2] = GetReportCard(reportCardDocument, 3);;
-            }
 
-            if (reportingPeriod >= 2)
+            foreach (var period in Enumerable.Range(1, reportingPeriod))
             {
-                reportCardList[1] = GetReportCard(reportCardDocument, 2);;
-            }
-
-            if (reportingPeriod >= 1)
-            {
-                List<Course> reportingPeriod1Courses = ReportCardScraping(reportCardDocument, 1);
-                foreach (var course in reportingPeriod1Courses)
-                {
-                    coursesFromReportCard1.Add(course);
-                }
-                reportCardList[0] = coursesFromReportCard1;
+                reportCardList.Add(GetReportCard(reportCardDocument, period));
             }
 
             return reportCardList;
         }
 
-        private static List<Course> ReportCardScraping(HtmlDocument reportCardDocument, int markingPeriod)
+        private static IEnumerable<Course> ReportCardScraping(HtmlDocument reportCardDocument, int markingPeriod)
         {
             List<Course> reportCardAssignmentList = new List<Course>();
             var allReportCardHtml = reportCardDocument.DocumentNode.Descendants("div")
@@ -71,23 +50,23 @@ namespace HAC.API.Data
 
                 var courseID = reportCardCourse.Descendants("td") //gets course id
                     .FirstOrDefault().InnerText.Trim();
-
-                string courseGrade; //finalized course grade
+                
                 var elementNumber = markingPeriod switch
                 {
                     1 => 2,
                     2 => 4,
                     3 => 5,
-                    4 => 7,
+                    4 => 6,
                     _ => 0
                 };
 
-                var grades = new List<string>();
+                var grades = new List<string>
+                {
+                    reportCardCourse.Descendants("a") //gets course grade
+                        .ElementAt(elementNumber).InnerText.Trim()
+                };
 
-                grades.Add(reportCardCourse.Descendants("a") //gets course grade
-                    .ElementAt(elementNumber).InnerText.Trim());
-
-                if (grades.Contains("P")) continue; //ex: sub marching band
+                if (grades.Contains("P")) continue; //for classes that you have received credit
 
                 if (grades.Count != 1 || grades[0] == "")
                 {
@@ -117,7 +96,7 @@ namespace HAC.API.Data
                 foreach (var grade in grades)
                     avg += int.Parse(grade.Trim());
                 avg /= grades.Count;
-                courseGrade = avg.ToString();
+                var courseGrade = avg.ToString(); //finalized course grade
                 reportCardAssignmentList.Add(new Course
                 {
                     CourseId = courseID,
@@ -129,7 +108,7 @@ namespace HAC.API.Data
             return reportCardAssignmentList;
         }
 
-        private static IEnumerable<Course> GetReportCard(HtmlDocument reportCardDocument, int markingPeriod)
+        private static List<Course> GetReportCard(HtmlDocument reportCardDocument, int markingPeriod)
         {
             var coursesFromReportCard = new List<Course>();
             var reportingPeriodCourses = ReportCardScraping(reportCardDocument, markingPeriod);

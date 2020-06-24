@@ -49,12 +49,9 @@ namespace HAC.API.Data
 
         public Response GetAll(CookieContainer cookies, Uri requestUri, string link)
         {
-            var oldAssignmentList = new List<Course>();
-            var assignmentList1 = new List<AssignmentCourse>();
-            var assignmentList2 = new List<AssignmentCourse>();
-            var assignmentList3 = new List<AssignmentCourse>();
-            var assignmentList4 = new List<AssignmentCourse>();
-            var reportCardCourses = new IEnumerable<Course>[4];
+            var oldAssignmentList = new List<List<TranscriptCourse>>();
+            var currentAssignmentList = new List<List<AssignmentCourse>>();
+            var reportCardCourses = new List<List<Course>>();
             try
             {
                 //report card
@@ -65,19 +62,7 @@ namespace HAC.API.Data
                 //current courses
                 var assignmentList = Courses.GetAssignmentsFromMarkingPeriod(cookies, requestUri, link);
 
-                assignmentList1 = assignmentList[0];
-                if (assignmentList.Count > 1)
-                {
-                    assignmentList2 = assignmentList[1];
-                    if (assignmentList.Count > 2)
-                    {
-                        assignmentList3 = assignmentList[2];
-                        if (assignmentList.Count > 3)
-                        {
-                            assignmentList4 = assignmentList[3];
-                        }
-                    }
-                }
+                currentAssignmentList = assignmentList;
 
                 //past courses/transcript 
                 string oldData = Utils.GetData(cookies, requestUri, link, ResponseType.Transcript);
@@ -96,41 +81,20 @@ namespace HAC.API.Data
             return new Response
             {
                 Message = "Success",
-                AssignmentList1 = assignmentList1,
-                AssignmentList2 = assignmentList2,
-                AssignmentList3 = assignmentList3,
-                AssignmentList4 = assignmentList4,
+                AssignmentList = currentAssignmentList,
                 TranscriptList = oldAssignmentList,
-                ReportCardList1 = reportCardCourses[0],
-                ReportCardList2 = reportCardCourses[1],
-                ReportCardList3 = reportCardCourses[2],
-                ReportCardList4 = reportCardCourses[3],
+                ReportCardList = reportCardCourses
             };
         }
 
         public Response GetCourses(CookieContainer cookies, Uri requestUri, string link)
         {
-            var assignmentList1 = new List<AssignmentCourse>();
-            var assignmentList2 = new List<AssignmentCourse>();
-            var assignmentList3 = new List<AssignmentCourse>();
-            var assignmentList4 = new List<AssignmentCourse>();
+            var currentAssignmentList = new List<List<AssignmentCourse>>();
             var assignmentList = Courses.GetAssignmentsFromMarkingPeriod(cookies, requestUri, link);
 
             try
             {
-                assignmentList1 = assignmentList[0];
-                if (assignmentList.Count > 1)
-                {
-                    assignmentList2 = assignmentList[1];
-                    if (assignmentList.Count > 2)
-                    {
-                        assignmentList3 = assignmentList[2];
-                        if (assignmentList.Count > 3)
-                        {
-                            assignmentList4 = assignmentList[3];
-                        }
-                    }
-                }
+                currentAssignmentList = assignmentList;
             }
             catch (Exception e)
             {
@@ -144,16 +108,13 @@ namespace HAC.API.Data
             return new Response
             {
                 Message = "Success",
-                AssignmentList1 = assignmentList1,
-                AssignmentList2 = assignmentList2,
-                AssignmentList3 = assignmentList3,
-                AssignmentList4 = assignmentList4,
+                AssignmentList = currentAssignmentList
             };
         }
 
         public Response GetReportCard(CookieContainer cookies, Uri requestUri, string link)
         {
-            var reportCardCourses = new IEnumerable<Course>[4];
+            var reportCardCourses = new List<List<Course>>();
             try
             {
                 string reportCardData = Utils.GetData(cookies, requestUri, link, ResponseType.ReportCards);
@@ -173,16 +134,13 @@ namespace HAC.API.Data
             return new Response
             {
                 Message = "Success",
-                ReportCardList1 = reportCardCourses[0],
-                ReportCardList2 = reportCardCourses[1],
-                ReportCardList3 = reportCardCourses[2],
-                ReportCardList4 = reportCardCourses[3],
+                ReportCardList = reportCardCourses
             };
         }
 
         public Response GetTranscript(CookieContainer cookies, Uri requestUri, string link)
         {
-            var oldAssignmentList = new List<Course>();
+            var oldAssignmentList = new List<List<TranscriptCourse>>();
             try
             {
                 string oldData = Utils.GetData(cookies, requestUri, link, ResponseType.Transcript);

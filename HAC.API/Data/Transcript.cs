@@ -8,37 +8,18 @@ namespace HAC.API.Data
 {
     public static class Transcript
     {
-        public static List<Course> GetTranscript(string data)
+        public static List<List<TranscriptCourse>> GetTranscript(string data)
         {
-            var oldAssignmentList = new List<Course>();
+            var oldAssignmentList = new List<List<TranscriptCourse>>();
             var oldHtmlDocument = new HtmlDocument();
             oldHtmlDocument.LoadHtml(data); //gets all of the years
-            byte numCourses = 0; //no one will exceed 255 
-            for (byte i = 0; i >= 0; i++)
-                //what this does is tries to get as many courses as possible until it receives an error, then pass on that number to get that number of courses
+            var transcriptGroups = oldHtmlDocument.DocumentNode.SelectNodes("//td[@class='sg-transcript-group']");
+            foreach (var group in transcriptGroups)
             {
-                try //get number of years
-                {
-                    var oldCourseHtml = oldHtmlDocument.DocumentNode
-                        .Descendants("table") //initializes variable but isn't used purposely for testing purposes
-                        .Where(node => node.GetAttributeValue("id", "")
-                            .Equals($"plnMain_rpTranscriptGroup_dgCourses_{i}")).ToList();
-                    if (oldCourseHtml.Count == 0) break;
-                }
-                catch (Exception)
-                {
-                    break;
-                }
-
-                numCourses = i;
-            }
-
-            //note: numCourses will always be 1 less because of indexes
-            for (byte i = 0; i <= numCourses - 1; i++) //get all years (-1 to exclude the present year)
-            {
-                var oldCourseHtml = oldHtmlDocument.DocumentNode.Descendants("table")
-                    .Where(node => node.GetAttributeValue("id", "")
-                        .Equals($"plnMain_rpTranscriptGroup_dgCourses_{i}")).ToList();
+                var yearlyAssignmentList = new List<TranscriptCourse>();
+                var oldCourseHtml = group.Descendants("table")
+                    .Where(node => node.GetAttributeValue("class", "")
+                        .Equals($"sg-asp-table")).ToList();
                 var oldCourseItemList = oldCourseHtml[0].Descendants("tr")
                     .Where(node => node.GetAttributeValue("class", "")
                         .Equals($"sg-asp-table-data-row")).ToList();
@@ -60,31 +41,70 @@ namespace HAC.API.Data
                     {
                         courseId = courseId.TrimEnd(courseId[^1]);
                     }
+                    
+                    //total credit of the course
+                    var courseCredit = double.Parse(courseHtmlItem.Descendants("td") //gets course grade
+                        .ElementAt(5).InnerText);
+                    
+                    var courseGrade = 0.0;
+                    
+                    var courseFinalGradeHtml = courseHtmlItem.Descendants("td") //gets course grade
+                        .ElementAt(4).InnerText;
 
-                    for (byte j = 4; j <= 4 && j > 1; j--)
-                        //gets grade, starts from last element, which is overall avg, if nothing, goes to second semester, then first semester
+                    if (courseFinalGradeHtml == "&nbsp;")
                     {
-                        var courseGrade = ""; //finalized course grade
-                        var courseGradeHtml = courseHtmlItem.Descendants("td") //gets course grade
-                            .ElementAt(j).InnerText;
-
-                        if (courseGradeHtml == "&nbsp;")
+                        double firstSem, secondSem = 0;
+                        for (byte j = 3; j <= 3 && j > 1; j--)
+                            //gets grade, starts from second semester avg, if nothing, goes to the first semester
                         {
-                            continue; //if it is not a grade and is empty then retry
+                            var courseGradeHtml = courseHtmlItem.Descendants("td") //gets course grade
+                                .ElementAt(j).InnerText;
+
+                            if (j == 3 && courseGradeHtml != "&nbsp;")
+                            {
+                                if (courseGradeHtml.Trim() == "P")
+                                {
+                                    secondSem = -1;
+                                    continue;
+                                }
+
+                                secondSem = double.Parse(courseGradeHtml);
+                            }
+                            else if (j == 2)
+                            {
+                                if (courseGradeHtml != "&nbsp;")
+                                {
+                                    if (courseGradeHtml.Trim() == "P")
+                                    {
+                                        if (secondSem <= 0)
+                                            courseGrade = -1;
+                                        else courseGrade = secondSem;
+                                        break;
+                                    }
+
+                                    firstSem = double.Parse(courseGradeHtml);
+                                    if (secondSem > 0)
+                                        courseGrade = (firstSem + secondSem) / 2;
+                                    else courseGrade = firstSem;
+                                }
+                                
+                                else courseGrade = secondSem;
+                            }
                         }
-
-                        if (j == 3)
-                            break; //if the course avg is available then you dont need to get the semester grades
-                        courseGrade = courseGradeHtml;
-                        oldAssignmentList.Add(new Course
-                        {
-                            CourseName = courseName,
-                            CourseId = courseId,
-                            CourseAverage = double.Parse(courseGrade)
-                        }); //turns the grade (string) received into a double 
                     }
+                    else courseGrade = double.Parse(courseFinalGradeHtml);
+
+                        yearlyAssignmentList.Add(new TranscriptCourse()
+                    {
+                        CourseName = courseName,
+                        CourseId = courseId,
+                        CourseAverage = courseGrade,
+                        CourseCredit = courseCredit
+                    });
                 }
+                oldAssignmentList.Add(yearlyAssignmentList);
             }
+            
             return oldAssignmentList;
         }
     }
