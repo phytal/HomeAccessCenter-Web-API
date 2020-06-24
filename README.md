@@ -22,7 +22,7 @@ To access a student's information, add the parameter **hacLink**, **username**, 
 - `api/courses` - returns course information for present courses
 - `api/ipr` - returns grade information from all interm progress reports
 - `api/reportCard` - returns grade information from all report cards
-- `pi/transcript` - returns past grade information from transcript
+- `api/transcript` - returns past grade information from transcript
 
 ### Example
 
