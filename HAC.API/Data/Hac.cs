@@ -51,17 +51,21 @@ namespace HAC.API.Data
         {
             var oldAssignmentList = new List<List<TranscriptCourse>>();
             var currentAssignmentList = new List<List<AssignmentCourse>>();
-            var reportCardCourses = new List<List<Course>>();
+            var reportCardList = new List<List<Course>>();
+            var iprList = new List<List<Course>>();
             try
             {
                 //report card
                 string reportCardData = Utils.GetData(cookies, requestUri, link, ResponseType.ReportCards);
                 var reportCardHtmlDocument = new HtmlDocument();
                 reportCardHtmlDocument.LoadHtml(reportCardData);
-                reportCardCourses = ReportCard.CheckReportCardTask(reportCardHtmlDocument);
+                reportCardList = ReportCard.CheckReportCardTask(reportCardHtmlDocument);
+                
+                //ipr
+                iprList = Ipr.GetGradesFromIpr(cookies, requestUri, link);
+                
                 //current courses
                 var assignmentList = Courses.GetAssignmentsFromMarkingPeriod(cookies, requestUri, link);
-
                 currentAssignmentList = assignmentList;
 
                 //past courses/transcript 
@@ -83,7 +87,8 @@ namespace HAC.API.Data
                 Message = "Success",
                 AssignmentList = currentAssignmentList,
                 TranscriptList = oldAssignmentList,
-                ReportCardList = reportCardCourses
+                ReportCardList = reportCardList,
+                IprList = iprList
             };
         }
 
@@ -109,6 +114,30 @@ namespace HAC.API.Data
             {
                 Message = "Success",
                 AssignmentList = currentAssignmentList
+            };
+        }
+        
+        public Response GetIpr(CookieContainer cookies, Uri requestUri, string link)
+        {
+            var iprList = new List<List<Course>>();
+
+            try
+            {
+                iprList = Ipr.GetGradesFromIpr(cookies, requestUri, link);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return new Response
+                {
+                    Message = $"Error 404: Could not fetch information. Exception: {e}"
+                };
+            }
+
+            return new Response
+            {
+                Message = "Success",
+                IprList = iprList
             };
         }
 

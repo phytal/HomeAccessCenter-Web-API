@@ -48,6 +48,10 @@ namespace HAC.API.Controllers
             {
                 result = hac.GetCourses(container, response.ResponseUri, hacLink);
             }
+            else if (type == typeof(IprController))
+            {
+                result = hac.GetIpr(container, response.ResponseUri, hacLink);
+            }
             else if (type == typeof(ReportCardController))
             {
                 result = hac.GetReportCard(container, response.ResponseUri, hacLink);
