@@ -14,7 +14,6 @@ namespace HAC.API.Data
     {
         public static List<List<AssignmentCourse>> GetAssignmentsFromMarkingPeriod(CookieContainer cookies, Uri requestUri, string link)
         {
-            //var assignmentList = new List<AssignmentCourse>();
             var courseList = new List<List<AssignmentCourse>>();
             var documentList = new List<HtmlDocument>();
             string data = Utils.GetData(cookies, requestUri, link, ResponseType.Assignments);
@@ -39,33 +38,21 @@ namespace HAC.API.Data
                 var courseHtml = document.DocumentNode.Descendants("div")
                     .Where(node => node.GetAttributeValue("class", "")
                         .Equals("AssignmentClass")).ToList();
-                Regex x = new Regex(@"\w+\s-\s\d\s");
 
                 foreach (var courseHtmlItem in courseHtml)
                 {
                     var course = courseHtmlItem.Descendants("a")
                         .FirstOrDefault(node => node.GetAttributeValue("class", "")
                             .Equals("sg-header-heading")).InnerText.Trim();
+                    
+                    Regex x = new Regex(@"\w+\s-\s\d\s");
+            
                     var courseName = x.Replace(course, @"").Trim();
-                    //removes semester 
-                    while (courseName.Substring(courseName.Length - 2) == "S1" ||
-                           courseName.Substring(courseName.Length - 2) == "S2")
-                    {
-                        courseName = courseName.Replace(courseName.Substring(courseName.Length - 2), "");
-                        while (courseName.LastOrDefault() == ' ' || courseName.LastOrDefault() == '-')
-                        {
-                            courseName = courseName.TrimEnd(courseName[^1]);
-                        }
-                    }
-
                     var courseId = x.Match(course).ToString().Trim();
-                    courseId = courseId.Remove(courseId.Length - 4);
-                    //removes excess
-                    while (courseId.LastOrDefault() == ' ' || courseId.LastOrDefault() == '-' ||
-                           courseId.LastOrDefault() == 'A' || courseId.LastOrDefault() == 'B')
-                    {
-                        courseId = courseId.TrimEnd(courseId[^1]);
-                    }
+                    
+                    var courseInfo = Utils.BeautifyCourseInfo(courseName, courseId);
+                    courseName = courseInfo.Item1;
+                    courseId = courseInfo.Item2;
 
                     string courseGrade;
                     try
@@ -90,7 +77,7 @@ namespace HAC.API.Data
                         node.GetAttributeValue("class", "").Equals("sg-asp-table-data-row")))
                     {
                         var assignment = new Assignment();
-                        Regex pattern = new Regex(".+:\\s");
+                        //Regex pattern = new Regex(".+:\\s");
                         var assignmentData = assignmentNode.ChildNodes[3].Descendants("a").FirstOrDefault().Attributes["title"].Value;
                         var parsedAssignmentData = Regex.Replace(assignmentData,".+:", "").Trim();
                         

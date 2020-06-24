@@ -40,34 +40,19 @@ namespace HAC.API.Data.Objects
                         .FirstOrDefault(node => node.GetAttributeValue("href", "")
                             .Equals("#")).InnerText.Trim();
 
-                    var courseID = iprCourse.Descendants("td") //gets course id
+                    var courseId = iprCourse.Descendants("td") //gets course id
                         .FirstOrDefault().InnerText.Trim();
 
                     var grade = iprCourse.Descendants("td") //gets course grade
                         .ElementAt(5).InnerText.Trim();
 
-                    while (courseName.Substring(courseName.Length - 2) == "S1" ||
-                           courseName.Substring(courseName.Length - 2) == "S2")
-                    {
-                        courseName = courseName.Replace(courseName.Substring(courseName.Length - 2), "");
-                        while (courseName.LastOrDefault() == ' ' || courseName.LastOrDefault() == '-')
-                        {
-                            courseName = courseName.TrimEnd(courseName[^1]);
-                        }
-                    }
-
-                    courseID = courseID.Remove(courseID.Length - 4);
-
-                    //removes excess
-                    while (courseID.LastOrDefault() == ' ' || courseID.LastOrDefault() == '-' ||
-                           courseID.LastOrDefault() == 'A' || courseID.LastOrDefault() == 'B')
-                    {
-                        courseID = courseID.TrimEnd(courseID[^1]);
-                    }
+                    var courseInfo = Utils.BeautifyCourseInfo(courseName, courseId);
+                    courseName = courseInfo.Item1;
+                    courseId = courseInfo.Item2;
                     
                     courseList.Add(new Course
                     {
-                        CourseId = courseID,
+                        CourseId = courseId,
                         CourseName = courseName,
                         CourseAverage = double.Parse(grade)
                     }); //turns the grade (string) received into a double 

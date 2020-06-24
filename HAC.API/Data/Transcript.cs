@@ -35,6 +35,8 @@ namespace HAC.API.Data
 
                     courseId = courseId.Remove(courseId.Length - 4);
 
+                    courseName = Utils.BeautifyCourseInfo(courseName).Item1;
+                    
                     while (courseId.LastOrDefault() == ' ' || courseId.LastOrDefault() == '-' ||
                            courseId.LastOrDefault() == 'A' || courseId.LastOrDefault() == 'B' ||
                            courseId.LastOrDefault() == 'Y' || courseId.LastOrDefault() == 'M')

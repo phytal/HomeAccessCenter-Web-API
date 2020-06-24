@@ -48,7 +48,7 @@ namespace HAC.API.Data
                     .FirstOrDefault(node => node.GetAttributeValue("href", "")
                         .Equals($"#")).InnerText.Trim();
 
-                var courseID = reportCardCourse.Descendants("td") //gets course id
+                var courseId = reportCardCourse.Descendants("td") //gets course id
                     .FirstOrDefault().InnerText.Trim();
                 
                 var elementNumber = markingPeriod switch
@@ -73,24 +73,9 @@ namespace HAC.API.Data
                     continue; //if it is not a grade and is empty then retry
                 }
 
-                while (courseName.Substring(courseName.Length - 2) == "S1" ||
-                       courseName.Substring(courseName.Length - 2) == "S2")
-                {
-                    courseName = courseName.Replace(courseName.Substring(courseName.Length - 2), "");
-                    while (courseName.LastOrDefault() == ' ' || courseName.LastOrDefault() == '-')
-                    {
-                        courseName = courseName.TrimEnd(courseName[^1]);
-                    }
-                }
-
-                courseID = courseID.Remove(courseID.Length - 4);
-
-                //removes excess
-                while (courseID.LastOrDefault() == ' ' || courseID.LastOrDefault() == '-' ||
-                       courseID.LastOrDefault() == 'A' || courseID.LastOrDefault() == 'B')
-                {
-                    courseID = courseID.TrimEnd(courseID[^1]);
-                }
+                var courseInfo = Utils.BeautifyCourseInfo(courseName, courseId);
+                courseName = courseInfo.Item1;
+                courseId = courseInfo.Item2;
 
                 var avg = 0;
                 foreach (var grade in grades)
@@ -99,7 +84,7 @@ namespace HAC.API.Data
                 var courseGrade = avg.ToString(); //finalized course grade
                 reportCardAssignmentList.Add(new Course
                 {
-                    CourseId = courseID,
+                    CourseId = courseId,
                     CourseName = courseName,
                     CourseAverage = double.Parse(courseGrade)
                 }); //turns the grade (string) received into a double 
@@ -108,6 +93,7 @@ namespace HAC.API.Data
             return reportCardAssignmentList;
         }
 
+        //prevents duplicates
         private static List<Course> GetReportCard(HtmlDocument reportCardDocument, int markingPeriod)
         {
             var coursesFromReportCard = new List<Course>();
@@ -123,7 +109,7 @@ namespace HAC.API.Data
                 }
                 coursesFromReportCard.Add(course);
             }
-
+        
             return coursesFromReportCard;
         }
     }

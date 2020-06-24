@@ -1,8 +1,10 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace HAC.API.Data
 {
@@ -141,6 +143,43 @@ namespace HAC.API.Data
 
             using StreamReader streamReader = new StreamReader(streamToRead, Encoding.UTF8);
             return streamReader.ReadToEnd();
+        }
+
+        /// <summary>
+        /// Returns the course information
+        /// </summary>
+        /// <param name="courseName">Course Name</param>
+        /// <param name="courseId">Course Id</param>
+        /// <returns>Returns course name, course id</returns>
+        public static Tuple<string, string> BeautifyCourseInfo(string courseName = null, string courseId = null)
+        {
+            if (courseName != null)
+            {
+                //removes semester 
+                while (courseName.Substring(courseName.Length - 2) == "S1" ||
+                       courseName.Substring(courseName.Length - 2) == "S2")
+                {
+                    courseName = courseName.Replace(courseName.Substring(courseName.Length - 2), "");
+                    while (courseName.LastOrDefault() == ' ' || courseName.LastOrDefault() == '-')
+                    {
+                        courseName = courseName.TrimEnd(courseName[^1]);
+                    }
+                }
+            }
+
+            if (courseId != null)
+            {
+                courseId = courseId.Remove(courseId.Length - 4);
+                //removes excess
+                while (courseId.LastOrDefault() == ' ' || courseId.LastOrDefault() == '-' ||
+                       courseId.LastOrDefault() == 'A' || courseId.LastOrDefault() == 'B')
+                {
+                    courseId = courseId.TrimEnd(courseId[^1]);
+
+                }
+            }
+
+            return new Tuple<string, string>(courseName, courseId);
         }
     }
 
