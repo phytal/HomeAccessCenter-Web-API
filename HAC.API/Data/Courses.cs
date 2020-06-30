@@ -39,9 +39,9 @@ namespace HAC.API.Data
                     .Where(node => node.GetAttributeValue("class", "")
                         .Equals("AssignmentClass")).ToList();
 
-                foreach (var courseHtmlItem in courseHtml)
+                foreach (var courseHtmlItem in courseHtml.WithIndex())
                 {
-                    var course = courseHtmlItem.Descendants("a")
+                    var course = courseHtmlItem.item.Descendants("a")
                         .FirstOrDefault(node => node.GetAttributeValue("class", "")
                             .Equals("sg-header-heading")).InnerText.Trim();
                     
@@ -57,20 +57,49 @@ namespace HAC.API.Data
                     string courseGrade;
                     try
                     {
-                        courseGrade = courseHtmlItem.Descendants("span")
-                            .FirstOrDefault(node => node.GetAttributeValue("class", "")
-                                .Equals("sg-header-heading sg-right"))?.InnerText.Trim().Remove(0, 15)
-                            .TrimEnd('%');
+                        courseGrade = document
+                            .GetElementbyId($"plnMain_rptAssigmnetsByCourse_lblOverallAverage_{courseHtmlItem.index}")
+                            .InnerText.Trim();
                     }
                     catch
                     {
                         continue;
                     }
 
+                    //Gets grading information
+                    //Prone to error as this typo is a hac problem
+                    var courseInfoTable = document.GetElementbyId($"plnMain_rptAssigmnetsByCourse_dgCourseCategories_{courseHtmlItem.index}");
+                    var gradeData = courseInfoTable.Descendants("tr").Where(node => node.GetAttributeValue("class", "")
+                        .Equals("sg-asp-table-data-row"));
+
+                    string gradeType = null;
+                    double totalPointsEarned, totalPointsMax, totalPointsPercent, gradeScaleTotal, gradeScaleEarned;
+                    totalPointsEarned = totalPointsMax = totalPointsPercent = gradeScaleTotal = gradeScaleEarned = 0;
+                    
+                    foreach (var gradeInput in gradeData)
+                    {
+                        var gradeInputNodes = gradeInput.ChildNodes;
+                        gradeType = gradeInputNodes[1].InnerText;
+                        totalPointsEarned = double.Parse(gradeInputNodes[2].InnerText);
+                        totalPointsMax = double.Parse(gradeInputNodes[3].InnerText);
+                        totalPointsPercent = double.Parse(gradeInputNodes[4].InnerText.TrimEnd('%'));
+                        gradeScaleTotal = double.Parse(gradeInputNodes[5].InnerText);
+                        gradeScaleEarned = double.Parse(gradeInputNodes[6].InnerText);
+                    }
+                    var gradeInfo = new GradeInfo
+                    {
+                        GradeType = gradeType,
+                        TotalPointsEarned =  totalPointsEarned,
+                        TotalPointsMax = totalPointsMax,
+                        TotalPointsPercent = totalPointsPercent,
+                        GradeScaleTotal = gradeScaleTotal,
+                        GradeScaleEarned = gradeScaleEarned
+                    };
+
                     var assignmentList = new List<Assignment>();
                     
                     //gets all the assignments for a course
-                    var assignmentTable = courseHtmlItem.Descendants("table").FirstOrDefault(node =>
+                    var assignmentTable = courseHtmlItem.item.Descendants("table").FirstOrDefault(node =>
                         node.GetAttributeValue("class", "").Equals("sg-asp-table"));
                     
                     foreach (var assignmentNode in assignmentTable.Descendants("tr").Where(node =>
@@ -135,7 +164,7 @@ namespace HAC.API.Data
                     localCourseList.Add(new AssignmentCourse
                     {
                         CourseName = courseName, CourseId = courseId, CourseAverage = double.Parse(courseGrade),
-                        Assignments = assignmentList
+                        Assignments = assignmentList, GradeInfo = gradeInfo
                     });
 
                 }
