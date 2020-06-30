@@ -181,6 +181,24 @@ namespace HAC.API.Data
 
             return new Tuple<string, string>(courseName, courseId);
         }
+        
+        public static string FormatName(string fullName)
+        {
+            var firstMiddleName = fullName.Split(',')[1].Trim().ToLower();
+            var fmName = firstMiddleName.Split(' ');
+            var firstNameBuilder = new StringBuilder();
+            foreach (var name in fmName)
+            {
+                firstNameBuilder.Append(char.ToUpper(name[0]) + name.Substring(1) + " ");
+            }
+
+            var firstName = firstNameBuilder.ToString().TrimEnd(' ');
+            var lastName = fullName.Split(',')[0].Trim().ToLower();
+            lastName = char.ToUpper(lastName[0]) + lastName.Substring(1);
+            fullName = firstName + " " + lastName;
+            
+            return fullName;
+        }
     }
 
     public enum ResponseType
@@ -188,6 +206,7 @@ namespace HAC.API.Data
         Transcript,
         ReportCards,
         Assignments,
-        InterimProgress
+        InterimProgress,
+        Registration
     }
 }

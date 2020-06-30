@@ -44,6 +44,10 @@ namespace HAC.API.Controllers
             {
                 result = hac.GetAll(container, response.ResponseUri, hacLink);
             }
+            else if (type == typeof(StudentController))
+            {
+                result = hac.GetStudentInfo(container, response.ResponseUri, hacLink);
+            }
             else if (type == typeof(CourseController))
             {
                 result = hac.GetCourses(container, response.ResponseUri, hacLink);

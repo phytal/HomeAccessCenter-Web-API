@@ -19,6 +19,7 @@ To access a student's information, add the parameter **hacLink**, **username**, 
 ### Endpoints
 
 - `api/hac` - returns all course information for a student
+- `api/student` - returns student registration information
 - `api/courses` - returns course information for present courses
 - `api/ipr` - returns grade information from all interm progress reports
 - `api/reportCard` - returns grade information from all report cards

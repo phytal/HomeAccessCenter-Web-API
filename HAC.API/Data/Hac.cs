@@ -49,12 +49,19 @@ namespace HAC.API.Data
 
         public Response GetAll(CookieContainer cookies, Uri requestUri, string link)
         {
+            var studentInfo = new Student();
             var oldAssignmentList = new List<List<TranscriptCourse>>();
             var currentAssignmentList = new List<List<AssignmentCourse>>();
             var reportCardList = new List<List<Course>>();
             var iprList = new List<List<Course>>();
             try
             {
+                //student info
+                string studentData = Utils.GetData(cookies, requestUri, link, ResponseType.Registration);
+                var studentDataDocument = new HtmlDocument();
+                studentDataDocument.LoadHtml(studentData);
+                studentInfo = StudentInfo.GetAllStudentInfo(studentDataDocument);
+                
                 //report card
                 string reportCardData = Utils.GetData(cookies, requestUri, link, ResponseType.ReportCards);
                 var reportCardHtmlDocument = new HtmlDocument();
@@ -85,12 +92,41 @@ namespace HAC.API.Data
             return new Response
             {
                 Message = "Success",
+                StudentInfo = studentInfo,
                 AssignmentList = currentAssignmentList,
                 TranscriptList = oldAssignmentList,
                 ReportCardList = reportCardList,
                 IprList = iprList
             };
         }
+        
+        public Response GetStudentInfo(CookieContainer cookies, Uri requestUri, string link)
+        {
+            var studentInfo = new Student();
+            var reportCardCourses = new List<List<Course>>();
+            try
+            {
+                string studentData = Utils.GetData(cookies, requestUri, link, ResponseType.Registration);
+                var studentDataDocument = new HtmlDocument();
+                studentDataDocument.LoadHtml(studentData);
+                studentInfo = StudentInfo.GetAllStudentInfo(studentDataDocument);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return new Response
+                {
+                    Message = $"Error 404: Could not fetch information. Exception: {e}"
+                };
+            }
+
+            return new Response
+            {
+                Message = "Success",
+                StudentInfo = studentInfo
+            };
+        }
+        
 
         public Response GetCourses(CookieContainer cookies, Uri requestUri, string link)
         {
