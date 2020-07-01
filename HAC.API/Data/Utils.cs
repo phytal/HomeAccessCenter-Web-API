@@ -10,7 +10,7 @@ namespace HAC.API.Data
 {
     public static class Utils
     {
-        public static string GetData(CookieContainer cookies, Uri requestUri, string link, ResponseType type)
+        public static string GetData(CookieContainer cookies, Uri requestUri, string link, ResponseType type, string param = "")
         {
             string s = string.Empty;
             foreach (Cookie cookie in cookies.GetCookies(requestUri))
@@ -22,7 +22,7 @@ namespace HAC.API.Data
             {
                 HttpWebRequest request =
                     (HttpWebRequest) WebRequest.Create(
-                        new Uri($"{link}/HomeAccess/Content/Student/{type.ToString()}.aspx"));
+                        new Uri($"{link}/HomeAccess/Content/Student/{type.ToString()}.aspx{param}"));
 
                 request.KeepAlive = true;
                 request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
@@ -38,7 +38,7 @@ namespace HAC.API.Data
                 return null;
             }
         }
-
+        
         public static string GetDataFromReportingPeriod(CookieContainer cookies, Uri requestUri, string link,
             string body)
         {
@@ -182,7 +182,7 @@ namespace HAC.API.Data
             return new Tuple<string, string>(courseName, courseId);
         }
         
-        public static string FormatName(string fullName)
+        public static string FormatName(string fullName, bool formal)
         {
             var firstMiddleName = fullName.Split(',')[1].Trim().ToLower();
             var fmName = firstMiddleName.Split(' ');
@@ -195,8 +195,15 @@ namespace HAC.API.Data
             var firstName = firstNameBuilder.ToString().TrimEnd(' ');
             var lastName = fullName.Split(',')[0].Trim().ToLower();
             lastName = char.ToUpper(lastName[0]) + lastName.Substring(1);
-            fullName = firstName + " " + lastName;
-            
+            if (formal)
+            {
+                fullName = lastName + ", " + firstName;
+            }
+            else
+            {
+                fullName = firstName + " " + lastName;
+            }
+
             return fullName;
         }
     }
@@ -207,6 +214,7 @@ namespace HAC.API.Data
         ReportCards,
         Assignments,
         InterimProgress,
-        Registration
+        Registration,
+        ClassPopUp
     }
 }

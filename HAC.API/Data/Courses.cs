@@ -32,19 +32,39 @@ namespace HAC.API.Data
                 documentList.Add(doc);
             }
 
-            foreach (var document in documentList)
+            foreach (var document in documentList.WithIndex())
             {
                 var localCourseList = new List<AssignmentCourse>();
-                var courseHtml = document.DocumentNode.Descendants("div")
+                var courseHtml = document.item.DocumentNode.Descendants("div")
                     .Where(node => node.GetAttributeValue("class", "")
                         .Equals("AssignmentClass")).ToList();
 
                 foreach (var courseHtmlItem in courseHtml.WithIndex())
                 {
-                    var course = courseHtmlItem.item.Descendants("a")
+                    var courseNode = courseHtmlItem.item.Descendants("a")
                         .FirstOrDefault(node => node.GetAttributeValue("class", "")
-                            .Equals("sg-header-heading")).InnerText.Trim();
+                            .Equals("sg-header-heading"));
+
+                    //gets teacher information (name and room)
+                    //gets section key
+                    var sectionKey = courseNode.Attributes["onclick"].Value;
                     
+                    sectionKey = Regex.Match(sectionKey, @"\d+").Groups[0].Value;
+                    var param = $"?section_key={sectionKey}&rcrun={document.index + 1}";
+                    
+                    //gets html for popup
+                    var popUpData = Utils.GetData(cookies, requestUri, link, ResponseType.ClassPopUp, param);
+                    var popUpDoc = new HtmlDocument();
+                    popUpDoc.LoadHtml(popUpData);
+
+                    //extracts info
+                    var sessionInfo = popUpDoc.GetElementbyId("plnMain_dgSessionInfo");
+                    var sessionData = sessionInfo.ChildNodes[2].ChildNodes;
+                    var teacherName = Utils.FormatName(sessionData[1].InnerText.Trim(), true);
+                    var teacherRoom = sessionData[2].InnerText.Trim();
+                    
+                    //gets and formats course info
+                    var course = courseNode.InnerText.Trim();
                     Regex x = new Regex(@"\w+\s-\s\d\s");
             
                     var courseName = x.Replace(course, @"").Trim();
@@ -57,7 +77,7 @@ namespace HAC.API.Data
                     string courseGrade;
                     try
                     {
-                        courseGrade = document
+                        courseGrade = document.item
                             .GetElementbyId($"plnMain_rptAssigmnetsByCourse_lblOverallAverage_{courseHtmlItem.index}")
                             .InnerText.Trim();
                     }
@@ -68,7 +88,7 @@ namespace HAC.API.Data
 
                     //Gets grading information
                     //Prone to error as this typo is a hac problem
-                    var courseInfoTable = document.GetElementbyId($"plnMain_rptAssigmnetsByCourse_dgCourseCategories_{courseHtmlItem.index}");
+                    var courseInfoTable = document.item.GetElementbyId($"plnMain_rptAssigmnetsByCourse_dgCourseCategories_{courseHtmlItem.index}");
                     var gradeData = courseInfoTable.Descendants("tr").Where(node => node.GetAttributeValue("class", "")
                         .Equals("sg-asp-table-data-row"));
 
@@ -164,7 +184,7 @@ namespace HAC.API.Data
                     localCourseList.Add(new AssignmentCourse
                     {
                         CourseName = courseName, CourseId = courseId, CourseAverage = double.Parse(courseGrade),
-                        Assignments = assignmentList, GradeInfo = gradeInfo
+                        Assignments = assignmentList, GradeInfo = gradeInfo, Teacher = teacherName, RoomNumber = teacherRoom
                     });
 
                 }

@@ -7,10 +7,10 @@ namespace HAC.API.Data
     {
         public static Student GetAllStudentInfo(HtmlDocument registrationDoc)
         {
-            var studentName = Utils.FormatName(registrationDoc.GetElementbyId("plnMain_lblRegStudentName").InnerText);
+            var studentName = Utils.FormatName(registrationDoc.GetElementbyId("plnMain_lblRegStudentName").InnerText, false);
             var birthDate = registrationDoc.GetElementbyId("plnMain_lblBirthDate").InnerText;
             var houseTeam = registrationDoc.GetElementbyId("plnMain_lblHouseTeam").InnerText;
-            var counselorName = Utils.FormatName(registrationDoc.GetElementbyId("plnMain_lblCounselor").InnerText);
+            var counselorName = Utils.FormatName(registrationDoc.GetElementbyId("plnMain_lblCounselor").InnerText, false);
             var counselorEmail = registrationDoc.GetElementbyId("plnMain_lblCounselor").FirstChild.Attributes[0].Value
                 .Substring(7);
             var buildingName = registrationDoc.GetElementbyId("plnMain_lblBuildingName").InnerText;
