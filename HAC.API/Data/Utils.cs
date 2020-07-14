@@ -5,23 +5,16 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
-using System.Text.RegularExpressions;
 
-namespace HAC.API.Data
-{
-    public static class Utils
-    {
-        public static string GetData(CookieContainer cookies, Uri requestUri, string link, ResponseType type, string section = "Student", string param = "")
-        {
-            string s = string.Empty;
-            foreach (Cookie cookie in cookies.GetCookies(requestUri))
-            {
-                s += (cookie.Name + "=" + cookie.Value + "; ");
-            }
+namespace HAC.API.Data {
+    public static class Utils {
+        public static string GetData(CookieContainer cookies, Uri requestUri, string link, ResponseType type,
+            string section = "Student", string param = "") {
+            var s = string.Empty;
+            foreach (Cookie cookie in cookies.GetCookies(requestUri)) s += cookie.Name + "=" + cookie.Value + "; ";
 
-            try
-            {
-                HttpWebRequest request =
+            try {
+                var request =
                     (HttpWebRequest) WebRequest.Create(
                         new Uri($"{link}/HomeAccess/Content/{section}/{type.ToString()}.aspx{param}"));
 
@@ -34,24 +27,18 @@ namespace HAC.API.Data
                 request.Headers.Set(HttpRequestHeader.Cookie, s);
                 return ReadResponse((HttpWebResponse) request.GetResponse());
             }
-            catch
-            {
+            catch {
                 return null;
             }
         }
-        
-        public static string GetDataWithBody(CookieContainer cookies, Uri requestUri, string link, ResponseType type,
-            string body, string section = "Student")
-        {
-            string s = string.Empty;
-            foreach (Cookie cookie in cookies.GetCookies(requestUri))
-            {
-                s += (cookie.Name + "=" + cookie.Value + "; ");
-            }
 
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest) WebRequest.Create(
+        public static string GetDataWithBody(CookieContainer cookies, Uri requestUri, string link, ResponseType type,
+            string body, string section = "Student") {
+            var s = string.Empty;
+            foreach (Cookie cookie in cookies.GetCookies(requestUri)) s += cookie.Name + "=" + cookie.Value + "; ";
+
+            try {
+                var request = (HttpWebRequest) WebRequest.Create(
                     $"{link}/HomeAccess/Content/{section}/{type.ToString()}.aspx");
 
                 request.KeepAlive = true;
@@ -71,41 +58,35 @@ namespace HAC.API.Data
                 request.Method = "POST";
                 request.ServicePoint.Expect100Continue = false;
 
-                byte[] postBytes = Encoding.UTF8.GetBytes(body);
+                var postBytes = Encoding.UTF8.GetBytes(body);
                 request.ContentLength = postBytes.Length;
-                Stream stream = request.GetRequestStream();
+                var stream = request.GetRequestStream();
                 stream.Write(postBytes, 0, postBytes.Length);
 
                 var result = ReadResponse((HttpWebResponse) request.GetResponse());
                 return result;
             }
-            catch
-            {
+            catch {
                 return null;
             }
         }
 
-        public static string ReadResponse(HttpWebResponse response)
-        {
-            using Stream responseStream = response.GetResponseStream();
-            Stream streamToRead = responseStream;
-            if (response.ContentEncoding.ToLower().Contains("gzip"))
-            {
-                streamToRead = new GZipStream(streamToRead, CompressionMode.Decompress);
-            }
-            else if (response.ContentEncoding.ToLower().Contains("deflate"))
-            {
-                streamToRead = new DeflateStream(streamToRead, CompressionMode.Decompress);
-            }
+        private static string ReadResponse(HttpWebResponse response) {
+            using var responseStream = response.GetResponseStream();
+            var streamToRead = responseStream;
+            if (streamToRead == null) throw new NullReferenceException();
 
-            using StreamReader streamReader = new StreamReader(streamToRead, Encoding.UTF8);
+            if (response.ContentEncoding.ToLower().Contains("gzip"))
+                streamToRead = new GZipStream(streamToRead, CompressionMode.Decompress);
+            else if (response.ContentEncoding.ToLower().Contains("deflate"))
+                streamToRead = new DeflateStream(streamToRead, CompressionMode.Decompress);
+
+            using var streamReader = new StreamReader(streamToRead, Encoding.UTF8);
             return streamReader.ReadToEnd();
         }
 
-        public static string PercentEncoder(string s)
-        {
-            var reservedCharacters = new Dictionary<string, string>
-            {
+        public static string PercentEncoder(string s) {
+            var reservedCharacters = new Dictionary<string, string> {
                 {"!", "%21"},
                 {"#", "%23"},
                 {"$", "%24"},
@@ -127,79 +108,56 @@ namespace HAC.API.Data
                 {"]", "%5D"},
                 {" ", "+"}
             };
-            foreach (var character in reservedCharacters.Keys)
-            {
-                s = s.Replace(character, reservedCharacters[character]);
-            }
+            foreach (var character in reservedCharacters.Keys) s = s.Replace(character, reservedCharacters[character]);
 
             return s;
         }
-        
+
         /// <summary>
-        /// Returns the course information
+        ///     Returns the course information
         /// </summary>
         /// <param name="courseName">Course Name</param>
         /// <param name="courseId">Course Id</param>
         /// <returns>Returns course name, course id</returns>
-        public static Tuple<string, string> BeautifyCourseInfo(string courseName = null, string courseId = null)
-        {
-            if (courseName != null)
-            {
-                //removes semester 
+        public static Tuple<string, string> BeautifyCourseInfo(string courseName = null, string courseId = null) {
+            if (courseName != null) //removes semester 
                 while (courseName.Substring(courseName.Length - 2) == "S1" ||
-                       courseName.Substring(courseName.Length - 2) == "S2")
-                {
+                       courseName.Substring(courseName.Length - 2) == "S2") {
                     courseName = courseName.Replace(courseName.Substring(courseName.Length - 2), "");
                     while (courseName.LastOrDefault() == ' ' || courseName.LastOrDefault() == '-')
-                    {
                         courseName = courseName.TrimEnd(courseName[^1]);
-                    }
                 }
-            }
 
-            if (courseId != null)
-            {
+            if (courseId != null) {
                 courseId = courseId.Remove(courseId.Length - 4);
                 //removes excess
                 while (courseId.LastOrDefault() == ' ' || courseId.LastOrDefault() == '-' ||
                        courseId.LastOrDefault() == 'A' || courseId.LastOrDefault() == 'B')
-                {
                     courseId = courseId.TrimEnd(courseId[^1]);
-
-                }
             }
 
             return new Tuple<string, string>(courseName, courseId);
         }
-        
-        public static string FormatName(string fullName, bool formal)
-        {
+
+        public static string FormatName(string fullName, bool formal) {
             var firstMiddleName = fullName.Split(',')[1].Trim().ToLower();
             var fmName = firstMiddleName.Split(' ');
             var firstNameBuilder = new StringBuilder();
-            foreach (var name in fmName)
-            {
-                firstNameBuilder.Append(char.ToUpper(name[0]) + name.Substring(1) + " ");
-            }
+            foreach (var name in fmName) firstNameBuilder.Append(char.ToUpper(name[0]) + name.Substring(1) + " ");
 
             var firstName = firstNameBuilder.ToString().TrimEnd(' ');
             var lastName = fullName.Split(',')[0].Trim().ToLower();
             lastName = char.ToUpper(lastName[0]) + lastName.Substring(1);
             if (formal)
-            {
                 fullName = lastName + ", " + firstName;
-            }
             else
-            {
                 fullName = firstName + " " + lastName;
-            }
 
             return fullName;
         }
     }
 
-    public enum ResponseType
-    {
+    public enum ResponseType {
         Transcript,
         ReportCards,
         Assignments,

@@ -1,7 +1,5 @@
-﻿namespace HAC.API.Data.Objects
-{
-    public class Student
-    {
+﻿namespace HAC.API.Data.Objects {
+    public class Student {
         public string StudentName { get; set; }
         public string BirthDate { get; set; }
         public string HouseTeam { get; set; }

@@ -1,9 +1,7 @@
 ﻿using System;
 
-namespace HAC.API.Data.Objects
-{
-    public class Assignment
-    {
+namespace HAC.API.Data.Objects {
+    public class Assignment {
         public string Title { get; set; }
         public string Name { get; set; }
         public string Category { get; set; }
@@ -16,8 +14,7 @@ namespace HAC.API.Data.Objects
         public bool HasAttachments { get; set; }
     }
 
-    public enum AssignmentStatus
-    {
+    public enum AssignmentStatus {
         Upcoming,
         Complete,
         Incomplete,
