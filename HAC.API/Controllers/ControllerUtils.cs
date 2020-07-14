@@ -64,6 +64,10 @@ namespace HAC.API.Controllers
             {
                 result = hac.GetTranscript(container, response.ResponseUri, hacLink);
             }
+            else if (type == typeof(AttendanceController))
+            {
+                result = hac.GetAttendance(container, response.ResponseUri, hacLink);
+            }
 
             return result;
         }

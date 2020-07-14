@@ -53,7 +53,7 @@ namespace HAC.API.Data
         {
             foreach (var input in document.DocumentNode.Descendants("input"))
             {
-                runChangeForm[CharacterCoded(input.Attributes["name"].Value)] = CharacterCoded(input.Attributes["value"].Value);
+                runChangeForm[Utils.PercentEncoder(input.Attributes["name"].Value)] = Utils.PercentEncoder(input.Attributes["value"].Value);
             }
 
             runChangeForm["ctl00%24plnMain%24ddlReportCardRuns"] = "";
@@ -61,27 +61,6 @@ namespace HAC.API.Data
             runChangeForm["ctl00%24plnMain%24ddlCompetencies"] = "ALL";
             runChangeForm["ctl00%24plnMain%24ddlOrderBy"] = "Class";
             runChangeForm["__EVENTTARGET"] = "ctl00%24plnMain%24btnRefreshView";
-        }
-
-        private string CharacterCoded(string s)
-        {
-            var charToCode = new Dictionary<string, string>
-            {
-                {"$", "%24"},
-                {"=", "%3D"},
-                {"+", "%2B"},
-                {"/", "%2F"},
-                {" ", "+"},
-                {"(", "%28"},
-                {")", "%29"},
-                {"'", "%27"}
-            };
-            foreach (var character in charToCode.Keys)
-            {
-                s = s.Replace(character, charToCode[character]);
-            }
-
-            return s;
         }
     }
 }

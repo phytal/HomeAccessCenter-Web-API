@@ -22,7 +22,7 @@ namespace HAC.API.Data.Objects
             foreach (var name in iprDateNames)
             {
                 var body = form.GenerateFormBody(name);
-                var response = Utils.GetDataFromIprDate(cookies, requestUri, link, body);
+                var response = Utils.GetDataWithBody(cookies, requestUri, link, ResponseType.InterimProgress, body);
                 var doc = new HtmlDocument();
                 doc.LoadHtml(response);
                 documentList.Add(doc);

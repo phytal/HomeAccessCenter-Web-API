@@ -50,6 +50,7 @@ namespace HAC.API.Data
         public Response GetAll(CookieContainer cookies, Uri requestUri, string link)
         {
             var studentInfo = new Student();
+            var calendarList = new List<List<List<Day>>>();
             var oldAssignmentList = new List<List<TranscriptCourse>>();
             var currentAssignmentList = new List<List<AssignmentCourse>>();
             var reportCardList = new List<List<Course>>();
@@ -61,6 +62,9 @@ namespace HAC.API.Data
                 var studentDataDocument = new HtmlDocument();
                 studentDataDocument.LoadHtml(studentData);
                 studentInfo = StudentInfo.GetAllStudentInfo(studentDataDocument);
+                
+                //attendance 
+                calendarList = Attendance.GetAttendances(cookies, requestUri, link);
                 
                 //report card
                 string reportCardData = Utils.GetData(cookies, requestUri, link, ResponseType.ReportCards);
@@ -93,6 +97,7 @@ namespace HAC.API.Data
             {
                 Message = "Success",
                 StudentInfo = studentInfo,
+                Attendances = calendarList,
                 AssignmentList = currentAssignmentList,
                 TranscriptList = oldAssignmentList,
                 ReportCardList = reportCardList,
@@ -103,7 +108,6 @@ namespace HAC.API.Data
         public Response GetStudentInfo(CookieContainer cookies, Uri requestUri, string link)
         {
             var studentInfo = new Student();
-            var reportCardCourses = new List<List<Course>>();
             try
             {
                 string studentData = Utils.GetData(cookies, requestUri, link, ResponseType.Registration);
@@ -223,6 +227,30 @@ namespace HAC.API.Data
             {
                 Message = "Success",
                 TranscriptList = oldAssignmentList,
+            };
+        }
+        
+        public Response GetAttendance(CookieContainer cookies, Uri requestUri, string link)
+        {
+            var calendarList = new List<List<List<Day>>>();
+
+            try
+            {
+                calendarList = Attendance.GetAttendances(cookies, requestUri, link);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return new Response
+                {
+                    Message = $"Error 404: Could not fetch information. Exception: {e}"
+                };
+            }
+
+            return new Response
+            {
+                Message = "Success",
+                Attendances = calendarList
             };
         }
 

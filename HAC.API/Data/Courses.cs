@@ -26,7 +26,7 @@ namespace HAC.API.Data
             foreach (var name in reportingPeriodNames)
             {
                 var body = form.GenerateFormBody(name);
-                var response = Utils.GetDataFromReportingPeriod(cookies, requestUri, link, body);
+                var response = Utils.GetDataWithBody(cookies, requestUri, link, ResponseType.Assignments, body);
                 var doc = new HtmlDocument();
                 doc.LoadHtml(response);
                 documentList.Add(doc);
@@ -53,7 +53,7 @@ namespace HAC.API.Data
                     var param = $"?section_key={sectionKey}&rcrun={document.index + 1}";
                     
                     //gets html for popup
-                    var popUpData = Utils.GetData(cookies, requestUri, link, ResponseType.ClassPopUp, param);
+                    var popUpData = Utils.GetData(cookies, requestUri, link, ResponseType.ClassPopUp, "Student", param);
                     var popUpDoc = new HtmlDocument();
                     popUpDoc.LoadHtml(popUpData);
 

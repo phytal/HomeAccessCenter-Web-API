@@ -36,7 +36,7 @@ namespace HAC.API.Data
 
         public string GenerateFormBody(string reportingPeriodName)
         {
-            runChangeForm["ctl00%24plnMain%24ddlIPRDates"] = CharacterCoded(iprDateValues[reportingPeriodName]);
+            runChangeForm["ctl00%24plnMain%24ddlIPRDates"] = Utils.PercentEncoder(iprDateValues[reportingPeriodName]);
             var bodyBuilder = new StringBuilder();
             foreach (var entry in runChangeForm)
             {
@@ -50,32 +50,10 @@ namespace HAC.API.Data
         {
             foreach (var input in document.DocumentNode.Descendants("input"))
             {
-                runChangeForm[CharacterCoded(input.Attributes["name"].Value)] = CharacterCoded(input.Attributes["value"].Value);
+                runChangeForm[Utils.PercentEncoder(input.Attributes["name"].Value)] = Utils.PercentEncoder(input.Attributes["value"].Value);
             }
             
             runChangeForm["__EVENTTARGET"] = "ctl00%24plnMain%24ddlIPRDates";
-        }
-
-        private string CharacterCoded(string s)
-        {
-            var charToCode = new Dictionary<string, string>
-            {
-                {"$", "%24"},
-                {"=", "%3D"},
-                {"+", "%2B"},
-                {"/", "%2F"},
-                {" ", "+"},
-                {"(", "%28"},
-                {")", "%29"},
-                {"'", "%27"},
-                {":", "%3A"}
-            };
-            foreach (var character in charToCode.Keys)
-            {
-                s = s.Replace(character, charToCode[character]);
-            }
-
-            return s;
         }
     }
 }
