@@ -9,7 +9,10 @@ namespace HAC.API {
 
         private static IHostBuilder CreateHostBuilder(string[] args) {
             return Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder => { webBuilder.UseStartup<Startup>(); });
+                .ConfigureWebHostDefaults(webBuilder => {
+                    webBuilder.UseSentry("https://6c329f07393240b1bd91712ebbccf71e@o337002.ingest.sentry.io/5339698");
+                    webBuilder.UseStartup<Startup>();
+                });
         }
     }
 }

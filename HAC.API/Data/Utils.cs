@@ -1,88 +1,111 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using Sentry;
 
 namespace HAC.API.Data {
     public static class Utils {
-        public static string GetData(CookieContainer cookies, Uri requestUri, string link, ResponseType type,
+        public static async Task<string> GetData(CookieContainer cookies, Uri requestUri, string link, ResponseType type,
             string section = "Student", string param = "") {
             var s = string.Empty;
             foreach (Cookie cookie in cookies.GetCookies(requestUri)) s += cookie.Name + "=" + cookie.Value + "; ";
 
+            var requestLink = $"{link}/HomeAccess/Content/{section}/{type.ToString()}.aspx{param}";
             try {
-                var request =
-                    (HttpWebRequest) WebRequest.Create(
-                        new Uri($"{link}/HomeAccess/Content/{section}/{type.ToString()}.aspx{param}"));
-
-                request.KeepAlive = true;
-                request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
-                request.Headers.Add("Upgrade-Insecure-Requests", @"1");
-                request.UserAgent = "Chrome/77.0.3865.120";
-                request.Headers.Set(HttpRequestHeader.AcceptEncoding, "gzip, deflate");
-                request.Headers.Set(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.8");
-                request.Headers.Set(HttpRequestHeader.Cookie, s);
-                return ReadResponse((HttpWebResponse) request.GetResponse());
+                // setting up the http client
+                var handler = new HttpClientHandler {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                    CookieContainer = cookies
+                }; 
+                var httpClient = new HttpClient(handler) {BaseAddress = new Uri(link)};
+                httpClient.DefaultRequestHeaders.Referrer =
+                    new Uri(requestLink);
+                foreach (var (key, value) in Hac.HandlerProperties) httpClient.DefaultRequestHeaders.Add(key, value);
+                
+                // tries to post a request with the http client
+                try {
+                    // TODO: get cancellation tokens to work
+                    // HttpResponseMessage response;
+                    // using var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                    //
+                    // try {
+                    //     response = await httpClient.GetAsync(link, tokenSource.Token);
+                    // }
+                    // catch (TaskCanceledException) {
+                    //     throw new TimeoutException(
+                    //         $"Error 504: Data fetching request to {link} while fetching the {type.ToString()} has timed out.");
+                    // }
+                    
+                    var response = await httpClient.GetStringAsync(requestLink);
+                    
+                    return response;
+                }
+                catch (HttpRequestException e) {
+                    SentrySdk.CaptureException(e);
+                    return null;
+                }
             }
             catch {
                 return null;
             }
         }
 
-        public static string GetDataWithBody(CookieContainer cookies, Uri requestUri, string link, ResponseType type,
+        public static async Task<string> GetDataWithBody(CookieContainer cookies, Uri requestUri, string link, ResponseType type,
             string body, string section = "Student") {
             var s = string.Empty;
             foreach (Cookie cookie in cookies.GetCookies(requestUri)) s += cookie.Name + "=" + cookie.Value + "; ";
 
             try {
-                var request = (HttpWebRequest) WebRequest.Create(
-                    $"{link}/HomeAccess/Content/{section}/{type.ToString()}.aspx");
+                // setting up the http client
+                var handler = new HttpClientHandler {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                    CookieContainer = cookies
+                }; 
+                var httpClient = new HttpClient(handler) {BaseAddress = new Uri(link)};
+                httpClient.DefaultRequestHeaders.Referrer =
+                    new Uri($"{link}/HomeAccess/Content/{section}/{type.ToString()}.aspx");
+                httpClient.DefaultRequestHeaders.CacheControl = CacheControlHeaderValue.Parse("max-age=0");
+                httpClient.DefaultRequestHeaders.ExpectContinue = false;
+                httpClient.DefaultRequestHeaders.Add("Origin", @$"{link}/");
+                foreach (var (key, value) in Hac.HandlerProperties) httpClient.DefaultRequestHeaders.Add(key, value);
+                
+                var data = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
 
-                request.KeepAlive = true;
-                request.Headers.Set(HttpRequestHeader.CacheControl, "max-age=0");
-                request.Accept =
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9";
-                request.Headers.Add("Origin", $"{link}");
-                request.Headers.Add("Upgrade-Insecure-Requests", @"1");
-                request.UserAgent =
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.61 Safari/537.36";
-                request.ContentType = "application/x-www-form-urlencoded";
-                request.Referer = $"{link}/HomeAccess/Content/{section}/{type.ToString()}.aspx";
-                request.Headers.Set(HttpRequestHeader.AcceptEncoding, "gzip, deflate, br");
-                request.Headers.Set(HttpRequestHeader.AcceptLanguage, "en-US,en;q=0.9");
-                request.Headers.Set(HttpRequestHeader.Cookie, s);
+                // tries to post a request with the http client
+                try {
+                    // HttpResponseMessage response;
+                    // using var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                    //
+                    // try {
+                    //     response = await httpClient.PostAsync(link, data, tokenSource.Token);
+                    // }
+                    // catch (TaskCanceledException) {
+                    //     throw new TimeoutException(
+                    //         $"Error 504: Data fetching request to {link} while fetching the {type.ToString()} has timed out.");
+                    // }
+                    //
+                    var response = await httpClient.PostAsync(link, data);
 
-                request.Method = "POST";
-                request.ServicePoint.Expect100Continue = false;
+                    response.EnsureSuccessStatusCode();
 
-                var postBytes = Encoding.UTF8.GetBytes(body);
-                request.ContentLength = postBytes.Length;
-                var stream = request.GetRequestStream();
-                stream.Write(postBytes, 0, postBytes.Length);
+                    var responseBody = await response.Content.ReadAsStringAsync();
 
-                var result = ReadResponse((HttpWebResponse) request.GetResponse());
-                return result;
+                    return responseBody;
+                }
+                catch (HttpRequestException e) {
+                    SentrySdk.CaptureException(e);
+                    return null;
+                }
             }
             catch {
                 return null;
             }
-        }
-
-        private static string ReadResponse(HttpWebResponse response) {
-            using var responseStream = response.GetResponseStream();
-            var streamToRead = responseStream;
-            if (streamToRead == null) throw new NullReferenceException();
-
-            if (response.ContentEncoding.ToLower().Contains("gzip"))
-                streamToRead = new GZipStream(streamToRead, CompressionMode.Decompress);
-            else if (response.ContentEncoding.ToLower().Contains("deflate"))
-                streamToRead = new DeflateStream(streamToRead, CompressionMode.Decompress);
-
-            using var streamReader = new StreamReader(streamToRead, Encoding.UTF8);
-            return streamReader.ReadToEnd();
         }
 
         public static string PercentEncoder(string s) {

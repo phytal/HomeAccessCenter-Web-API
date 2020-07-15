@@ -18,7 +18,7 @@ namespace HAC.API.Data {
             var data = Utils.GetData(cookies, requestUri, link, ResponseType.MonthlyView, "Attendance");
 
             var htmlDocument = new HtmlDocument();
-            htmlDocument.LoadHtml(data);
+            htmlDocument.LoadHtml(data.Result);
 
             var form = new AttendanceForm(htmlDocument);
             var monthKeys = form.MonthKeys();
@@ -27,7 +27,7 @@ namespace HAC.API.Data {
                 var response = Utils.GetDataWithBody(cookies, requestUri, link, ResponseType.MonthlyView, body,
                     "Attendance");
                 var doc = new HtmlDocument();
-                doc.LoadHtml(response);
+                doc.LoadHtml(response.Result);
                 documentList.Add(doc);
             }
 

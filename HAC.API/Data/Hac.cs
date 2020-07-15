@@ -4,9 +4,11 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using HAC.API.Data.Objects;
 using HtmlAgilityPack;
+using Sentry;
 
 namespace HAC.API.Data {
     public static class Hac {
@@ -18,7 +20,7 @@ namespace HAC.API.Data {
             {"Connection", "keep-alive"},
             {"DNT", "1"},
             {"Upgrade-Insecure-Requests", "1"},
-            {"User-Agent", "Chrome/77.0.3865.120"}
+            {"User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.89 Safari/537.36"}
         };
 
         public static async Task<LoginResponse> Login(string link, string username, string password) {
@@ -26,8 +28,11 @@ namespace HAC.API.Data {
             var container = new CookieContainer();
             try {
                 // setting up the http client
-                using var handler = new HttpClientHandler {CookieContainer = container};
-                using var httpClient = new HttpClient(handler) {BaseAddress = new Uri(link)};
+                var handler = new HttpClientHandler {
+                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
+                    CookieContainer = container
+                }; 
+                var httpClient = new HttpClient(handler) {BaseAddress = new Uri(link)};
                 httpClient.DefaultRequestHeaders.Referrer =
                     new Uri($"{link}/HomeAccess/Account/LogOn");
                 httpClient.DefaultRequestHeaders.CacheControl = CacheControlHeaderValue.Parse("max-age=0");
@@ -40,6 +45,16 @@ namespace HAC.API.Data {
 
                 // tries to post a request with the http client
                 try {
+                    // HttpResponseMessage response;
+                    // using var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+                    //
+                    // try {
+                    //     response = await httpClient.PostAsync(loginLink, data, tokenSource.Token);
+                    // }
+                    // catch (TaskCanceledException) {
+                    //     throw new TimeoutException(
+                    //         $"Error 504: Logging into {link} has timed out");
+                    // }
                     var response = await httpClient.PostAsync(loginLink, data);
 
                     response.EnsureSuccessStatusCode();
@@ -54,9 +69,7 @@ namespace HAC.API.Data {
                     };
                 }
                 catch (HttpRequestException e) {
-                    Console.WriteLine("\nException Caught!");
-                    Console.WriteLine("Message :{0} ", e.Message);
-
+                    SentrySdk.CaptureException(e);
                     return null;
                 }
             }
@@ -75,7 +88,7 @@ namespace HAC.API.Data {
                 //student info
                 var studentData = Utils.GetData(cookies, requestUri, link, ResponseType.Registration);
                 var studentDataDocument = new HtmlDocument();
-                studentDataDocument.LoadHtml(studentData);
+                studentDataDocument.LoadHtml(studentData.Result);
                 studentInfo = StudentInfo.GetAllStudentInfo(studentDataDocument);
 
                 //attendance 
@@ -84,7 +97,7 @@ namespace HAC.API.Data {
                 //report card
                 var reportCardData = Utils.GetData(cookies, requestUri, link, ResponseType.ReportCards);
                 var reportCardHtmlDocument = new HtmlDocument();
-                reportCardHtmlDocument.LoadHtml(reportCardData);
+                reportCardHtmlDocument.LoadHtml(reportCardData.Result);
                 reportCardList = ReportCard.CheckReportCardTask(reportCardHtmlDocument);
 
                 //ipr
@@ -96,7 +109,7 @@ namespace HAC.API.Data {
 
                 //past courses/transcript 
                 var oldData = Utils.GetData(cookies, requestUri, link, ResponseType.Transcript);
-                oldAssignmentList = Transcript.GetTranscript(oldData);
+                oldAssignmentList = Transcript.GetTranscript(oldData.Result);
             }
             catch (Exception e) {
                 Console.WriteLine(e);
@@ -121,7 +134,7 @@ namespace HAC.API.Data {
             try {
                 var studentData = Utils.GetData(cookies, requestUri, link, ResponseType.Registration);
                 var studentDataDocument = new HtmlDocument();
-                studentDataDocument.LoadHtml(studentData);
+                studentDataDocument.LoadHtml(studentData.Result);
                 studentInfo = StudentInfo.GetAllStudentInfo(studentDataDocument);
             }
             catch (Exception e) {
@@ -182,7 +195,7 @@ namespace HAC.API.Data {
             try {
                 var reportCardData = Utils.GetData(cookies, requestUri, link, ResponseType.ReportCards);
                 var reportCardHtmlDocument = new HtmlDocument();
-                reportCardHtmlDocument.LoadHtml(reportCardData);
+                reportCardHtmlDocument.LoadHtml(reportCardData.Result);
                 reportCardCourses = ReportCard.CheckReportCardTask(reportCardHtmlDocument);
             }
             catch (Exception e) {
@@ -202,7 +215,7 @@ namespace HAC.API.Data {
             List<List<TranscriptCourse>> oldAssignmentList;
             try {
                 var oldData = Utils.GetData(cookies, requestUri, link, ResponseType.Transcript);
-                oldAssignmentList = Transcript.GetTranscript(oldData);
+                oldAssignmentList = Transcript.GetTranscript(oldData.Result);
             }
             catch (Exception e) {
                 Console.WriteLine(e);
@@ -237,7 +250,7 @@ namespace HAC.API.Data {
         }
 
         public static bool IsValidLogin(string response) {
-            return !response.Contains("You have entered an incorrect HAC ID or password");
+            return !response.Contains("Your attempt to log in was unsuccessful.");
         }
 
         public class LoginResponse {

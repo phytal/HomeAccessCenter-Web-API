@@ -18,7 +18,7 @@ namespace HAC.API.Data {
             var data = Utils.GetData(cookies, requestUri, link, ResponseType.Assignments);
 
             var htmlDocument = new HtmlDocument();
-            htmlDocument.LoadHtml(data);
+            htmlDocument.LoadHtml(data.Result);
 
             var form = new GradesForm(htmlDocument);
             var reportingPeriodNames = form.ReportingPeriodNames();
@@ -26,7 +26,7 @@ namespace HAC.API.Data {
                 var body = form.GenerateFormBody(name);
                 var response = Utils.GetDataWithBody(cookies, requestUri, link, ResponseType.Assignments, body);
                 var doc = new HtmlDocument();
-                doc.LoadHtml(response);
+                doc.LoadHtml(response.Result);
                 documentList.Add(doc);
             }
 
@@ -53,7 +53,7 @@ namespace HAC.API.Data {
                     //gets html for popup
                     var popUpData = Utils.GetData(cookies, requestUri, link, ResponseType.ClassPopUp, "Student", param);
                     var popUpDoc = new HtmlDocument();
-                    popUpDoc.LoadHtml(popUpData);
+                    popUpDoc.LoadHtml(popUpData.Result);
 
                     //extracts info
                     var sessionInfo = popUpDoc.GetElementbyId("plnMain_dgSessionInfo");

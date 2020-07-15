@@ -14,7 +14,7 @@ namespace HAC.API.Data {
             var data = Utils.GetData(cookies, requestUri, link, ResponseType.InterimProgress);
 
             var htmlDocument = new HtmlDocument();
-            htmlDocument.LoadHtml(data);
+            htmlDocument.LoadHtml(data.Result);
 
             var form = new IprForm(htmlDocument);
             var iprDateNames = form.IprDateNames();
@@ -22,7 +22,7 @@ namespace HAC.API.Data {
                 var body = form.GenerateFormBody(name);
                 var response = Utils.GetDataWithBody(cookies, requestUri, link, ResponseType.InterimProgress, body);
                 var doc = new HtmlDocument();
-                doc.LoadHtml(response);
+                doc.LoadHtml(response.Result);
                 documentList.Add(doc);
             }
 

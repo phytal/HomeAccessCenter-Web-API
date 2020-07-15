@@ -28,7 +28,7 @@ namespace HAC.API.Controllers {
 
             if (!Hac.IsValidLogin(response.Result.ResponseBody)) //checks if login credentials are true
             {
-                const string errorText = "Either the HAC username or password is incorrect.";
+                const string errorText = "Error 401: Either the HAC username or password is incorrect.";
                 return new Response {
                     Message = errorText
                 };
