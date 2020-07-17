@@ -25,7 +25,7 @@ namespace HAC.API.Data {
         public List<List<AssignmentCourse>> GetAssignmentsFromMarkingPeriod(string link) {
             var courseList = new List<List<AssignmentCourse>>();
             var documentList = new List<HtmlDocument>();
-            var data = Utils.GetData(_httpClient, link, ResponseType.Assignments);
+            var data = RequestData.GetData(_httpClient, link, ResponseType.Assignments);
 
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(data.Result);
@@ -34,7 +34,7 @@ namespace HAC.API.Data {
             var reportingPeriodNames = form.ReportingPeriodNames();
             foreach (var name in reportingPeriodNames) {
                 var body = form.GenerateFormBody(name);
-                var response = Utils.GetDataWithBody(_httpClient, link, ResponseType.Assignments, body);
+                var response = RequestData.GetDataWithBody(_httpClient, link, ResponseType.Assignments, body);
                 var doc = new HtmlDocument();
                 doc.LoadHtml(response.Result);
                 documentList.Add(doc);
@@ -61,7 +61,7 @@ namespace HAC.API.Data {
                     var param = $"?section_key={sectionKey}&rcrun={run + 1}";
 
                     //gets html for popup
-                    var popUpData = Utils.GetData(_httpClient, link, ResponseType.ClassPopUp, "Student", param);
+                    var popUpData = RequestData.GetData(_httpClient, link, ResponseType.ClassPopUp, "Student", param);
                     var popUpDoc = new HtmlDocument();
                     popUpDoc.LoadHtml(popUpData.Result);
 

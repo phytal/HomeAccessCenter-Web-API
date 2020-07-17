@@ -19,7 +19,7 @@ namespace HAC.API.Data {
 
         public List<List<Course>> CheckReportCardTask(string link) {
             //fetches and loads data
-            var reportCardData = Utils.GetData(_httpClient, link, ResponseType.ReportCards);
+            var reportCardData = RequestData.GetData(_httpClient, link, ResponseType.ReportCards);
             var reportCardDocument = new HtmlDocument();
             reportCardDocument.LoadHtml(reportCardData.Result);
             //checks the reporting period

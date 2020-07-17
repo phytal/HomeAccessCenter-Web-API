@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
+using Polly.Extensions.Http;
 
 namespace HAC.API {
     public class Startup {
@@ -34,19 +35,26 @@ namespace HAC.API {
             services.AddControllers();
             services.AddMvc();
             services.AddHttpClient<IAttendance, Attendance>().ConfigurePrimaryHttpMessageHandler(() => handler)
-                .AddPolicyHandler(request => timeout);
+                .AddPolicyHandler(request => timeout)
+                .AddPolicyHandler(GetRetryPolicy());
             services.AddHttpClient<ICourses, Courses>().ConfigurePrimaryHttpMessageHandler(() => handler)
-                .AddPolicyHandler(request => timeout);
+                .AddPolicyHandler(request => timeout)
+                .AddPolicyHandler(GetRetryPolicy());
             services.AddHttpClient<IIpr, Ipr>().ConfigurePrimaryHttpMessageHandler(() => handler)
-                .AddPolicyHandler(request => timeout);
+                .AddPolicyHandler(request => timeout)
+                .AddPolicyHandler(GetRetryPolicy());
             services.AddHttpClient<IReportCard, ReportCard>().ConfigurePrimaryHttpMessageHandler(() => handler)
-                .AddPolicyHandler(request => timeout);
+                .AddPolicyHandler(request => timeout)
+                .AddPolicyHandler(GetRetryPolicy());
             services.AddHttpClient<IStudentInfo, StudentInfo>().ConfigurePrimaryHttpMessageHandler(() => handler)
-                .AddPolicyHandler(request => timeout);
+                .AddPolicyHandler(request => timeout)
+                .AddPolicyHandler(GetRetryPolicy());
             services.AddHttpClient<ITranscript, Transcript>().ConfigurePrimaryHttpMessageHandler(() => handler)
-                .AddPolicyHandler(request => timeout);
+                .AddPolicyHandler(request => timeout)
+                .AddPolicyHandler(GetRetryPolicy());
             services.AddHttpClient<ILogin, Login>().ConfigurePrimaryHttpMessageHandler(() => handler)
-                .SetHandlerLifetime(TimeSpan.FromMinutes(9)).AddPolicyHandler(request => timeout);
+                .AddPolicyHandler(request => timeout)
+                .AddPolicyHandler(GetRetryPolicy());
             services.AddScoped<IHac, Hac>();
             services.AddScoped<IControllerUtils, ControllerUtils>();
         }
@@ -63,6 +71,16 @@ namespace HAC.API {
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
+        }
+
+        private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy() {
+            var jitterer = new Random();
+            return HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .OrResult(msg => msg.StatusCode == HttpStatusCode.NotFound)
+                .WaitAndRetryAsync(5,
+                    retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)) 
+                                    + TimeSpan.FromMilliseconds(jitterer.Next(0, 100)));
         }
     }
 }

@@ -46,16 +46,6 @@ namespace HAC.API.Data {
 
                 // tries to post a request with the http client
                 try {
-                    // HttpResponseMessage response;
-                    // using var tokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-                    //
-                    // try {
-                    //     response = await httpClient.PostAsync(loginLink, data, tokenSource.Token);
-                    // }
-                    // catch (TaskCanceledException) {
-                    //     throw new TimeoutException(
-                    //         $"Error 504: Logging into {link} has timed out");
-                    // }
                     var response = await _httpClient.PostAsync(loginLink, data);
 
                     response.EnsureSuccessStatusCode();

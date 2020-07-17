@@ -17,13 +17,13 @@ namespace HAC.API.Data {
         }
 
         public List<List<TranscriptCourse>> GetTranscript(string link) {
-            var data = Utils.GetData(_httpClient, link, ResponseType.Transcript).Result;
-            var oldAssignmentList = new List<List<TranscriptCourse>>();
-            var oldHtmlDocument = new HtmlDocument();
-            oldHtmlDocument.LoadHtml(data); //gets all of the years
-            var transcriptGroups = oldHtmlDocument.DocumentNode.SelectNodes("//td[@class='sg-transcript-group']");
+            var data = RequestData.GetData(_httpClient, link, ResponseType.Transcript).Result;
+            var courseList = new List<List<TranscriptCourse>>();
+            var htmlDocument = new HtmlDocument();
+            htmlDocument.LoadHtml(data); //gets all of the years
+            var transcriptGroups = htmlDocument.DocumentNode.SelectNodes("//td[@class='sg-transcript-group']");
             foreach (var group in transcriptGroups) {
-                var yearlyAssignmentList = new List<TranscriptCourse>();
+                var yearlyCourses = new List<TranscriptCourse>();
                 var oldCourseHtml = group.Descendants("table")
                     .Where(node => node.GetAttributeValue("class", "")
                         .Equals("sg-asp-table")).ToList();
@@ -99,7 +99,7 @@ namespace HAC.API.Data {
                         courseGrade = double.Parse(courseFinalGradeHtml);
                     }
 
-                    yearlyAssignmentList.Add(new TranscriptCourse {
+                    yearlyCourses.Add(new TranscriptCourse {
                         CourseName = courseName,
                         CourseId = courseId,
                         CourseAverage = courseGrade,
@@ -107,10 +107,10 @@ namespace HAC.API.Data {
                     });
                 }
 
-                oldAssignmentList.Add(yearlyAssignmentList);
+                courseList.Add(yearlyCourses);
             }
 
-            return oldAssignmentList;
+            return courseList;
         }
     }
 }

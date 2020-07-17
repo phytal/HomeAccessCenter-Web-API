@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using HAC.API.Data.Objects;
+using Sentry;
 
 namespace HAC.API.Data {
     public interface IHac {
@@ -34,16 +36,17 @@ namespace HAC.API.Data {
 
         public Response GetAll(string link) {
             Student studentInfo;
-            //List<List<List<Day>>> calendarList;
+            List<List<List<Day>>> calendarList;
             List<List<TranscriptCourse>> oldAssignmentList;
             List<List<AssignmentCourse>> currentAssignmentList;
             List<List<Course>> reportCardList, iprList;
+            
             try {
                 //student info
                 studentInfo = _studentInfo.GetAllStudentInfo(link);
 
                 //attendance 
-                //calendarList = Attendance.GetAttendances(cookies, requestUri, link);
+                calendarList = _attendance.GetAttendances(link);
 
                 //report card
                 reportCardList = _reportCard.CheckReportCardTask(link);
@@ -52,23 +55,22 @@ namespace HAC.API.Data {
                 iprList = _ipr.GetGradesFromIpr(link);
 
                 //current courses
-                var assignmentList = _courses.GetAssignmentsFromMarkingPeriod(link);
-                currentAssignmentList = assignmentList;
+                currentAssignmentList = _courses.GetAssignmentsFromMarkingPeriod(link);
 
                 //past courses/transcript 
                 oldAssignmentList = _transcript.GetTranscript(link);
             }
             catch (Exception e) {
-                Console.WriteLine(e);
+                SentrySdk.CaptureException(e);
                 return new Response {
-                    Message = $"Error 404: Could not fetch information. Exception: {e}"
+                    Message = $"Error 404: Could not fetch information. \nException: {e}"
                 };
             }
 
             return new Response {
                 Message = "Success",
                 StudentInfo = studentInfo,
-                //Attendances = calendarList,
+                Attendances = calendarList,
                 AssignmentList = currentAssignmentList,
                 TranscriptList = oldAssignmentList,
                 ReportCardList = reportCardList,
@@ -78,13 +80,14 @@ namespace HAC.API.Data {
 
         public Response GetStudentInfo(string link) {
             Student studentInfo;
+
             try {
                 studentInfo = _studentInfo.GetAllStudentInfo(link);
             }
             catch (Exception e) {
-                Console.WriteLine(e);
+                SentrySdk.CaptureException(e);
                 return new Response {
-                    Message = $"Error 404: Could not fetch information. Exception: {e}"
+                    Message = $"Error 404: Could not fetch information. \nException: {e}"
                 };
             }
 
@@ -103,9 +106,9 @@ namespace HAC.API.Data {
                 currentAssignmentList = assignmentList;
             }
             catch (Exception e) {
-                Console.WriteLine(e);
+                SentrySdk.CaptureException(e);
                 return new Response {
-                    Message = $"Error 404: Could not fetch information. Exception: {e}"
+                    Message = $"Error 404: Could not fetch information. \nException: {e}"
                 };
             }
 
@@ -122,9 +125,9 @@ namespace HAC.API.Data {
                 iprList = _ipr.GetGradesFromIpr(link);
             }
             catch (Exception e) {
-                Console.WriteLine(e);
+                SentrySdk.CaptureException(e);
                 return new Response {
-                    Message = $"Error 404: Could not fetch information. Exception: {e}"
+                    Message = $"Error 404: Could not fetch information. \nException: {e}"
                 };
             }
 
@@ -140,9 +143,9 @@ namespace HAC.API.Data {
                 reportCardCourses = _reportCard.CheckReportCardTask(link);
             }
             catch (Exception e) {
-                Console.WriteLine(e);
+                SentrySdk.CaptureException(e);
                 return new Response {
-                    Message = $"Error 404: Could not fetch information. Exception: {e}"
+                    Message = $"Error 404: Could not fetch information. \nException: {e}"
                 };
             }
 
@@ -158,9 +161,9 @@ namespace HAC.API.Data {
                 oldAssignmentList = _transcript.GetTranscript(link);
             }
             catch (Exception e) {
-                Console.WriteLine(e);
+                SentrySdk.CaptureException(e);
                 return new Response {
-                    Message = $"Error 404: Could not fetch information. Exception: {e}"
+                    Message = $"Error 404: Could not fetch information. \nException: {e}"
                 };
             }
 
@@ -177,9 +180,9 @@ namespace HAC.API.Data {
                 calendarList = _attendance.GetAttendances(link);
             }
             catch (Exception e) {
-                Console.WriteLine(e);
+                SentrySdk.CaptureException(e);
                 return new Response {
-                    Message = $"Error 404: Could not fetch information. Exception: {e}"
+                    Message = $"Error 404: Could not fetch information. \nException: {e}"
                 };
             }
 

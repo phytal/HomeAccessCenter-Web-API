@@ -22,7 +22,7 @@ namespace HAC.API.Data {
         public List<List<Course>> GetGradesFromIpr(string link) {
             var iprList = new List<List<Course>>();
             var documentList = new List<HtmlDocument>();
-            var data = Utils.GetData(_httpClient, link, ResponseType.InterimProgress);
+            var data = RequestData.GetData(_httpClient, link, ResponseType.InterimProgress);
 
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(data.Result);
@@ -31,7 +31,7 @@ namespace HAC.API.Data {
             var iprDateNames = form.IprDateNames();
             foreach (var name in iprDateNames) {
                 var body = form.GenerateFormBody(name);
-                var response = Utils.GetDataWithBody(_httpClient, link, ResponseType.InterimProgress, body);
+                var response = RequestData.GetDataWithBody(_httpClient, link, ResponseType.InterimProgress, body);
                 var doc = new HtmlDocument();
                 doc.LoadHtml(response.Result);
                 documentList.Add(doc);

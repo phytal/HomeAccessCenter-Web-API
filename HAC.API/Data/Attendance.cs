@@ -15,7 +15,7 @@ namespace HAC.API.Data {
     public class Attendance : IAttendance {
         private readonly HttpClient _httpClient;
 
-        private readonly string[] Names =
+        private readonly string[] _names =
             {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
         public Attendance(HttpClient httpClient) {
@@ -25,7 +25,7 @@ namespace HAC.API.Data {
         public List<List<List<Day>>> GetAttendances(string link) {
             var calendarList = new List<List<List<Day>>>();
             var documentList = new List<HtmlDocument>();
-            var data = Utils.GetData(_httpClient, link, ResponseType.MonthlyView, "Attendance");
+            var data = RequestData.GetData(_httpClient, link, ResponseType.MonthlyView, "Attendance");
 
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(data.Result);
@@ -34,7 +34,7 @@ namespace HAC.API.Data {
             var monthKeys = form.MonthKeys();
             foreach (var key in monthKeys) {
                 var body = form.GenerateFormBody(key);
-                var response = Utils.GetDataWithBody(_httpClient, link, ResponseType.MonthlyView, body,
+                var response = RequestData.GetDataWithBody(_httpClient, link, ResponseType.MonthlyView, body,
                     "Attendance");
                 var doc = new HtmlDocument();
                 doc.LoadHtml(response.Result);
@@ -71,7 +71,7 @@ namespace HAC.API.Data {
 
                         var calendarDay = new Day {
                             Date = date,
-                            DayName = Names[index],
+                            DayName = _names[index],
                             DayOff = dayAttrs["style"].Value.Contains("background-color:#CCCCCC"),
                             Attendances = attendances
                         };

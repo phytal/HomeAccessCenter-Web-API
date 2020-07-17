@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
+using Sentry;
 
 namespace HAC.API.Data.Forms {
     public class AttendanceForm {
@@ -63,8 +64,10 @@ namespace HAC.API.Data.Forms {
                 currentMonthKey = previousMonthPrefix.ToString() + currentMonthKeyNumber;
             }
             else {
-                throw new FormatException("Month key in the HTML is in the incorrect format!\n" +
-                                          calendarInfo.InnerHtml);
+                var e = new FormatException("Month key in the HTML is in the incorrect format!\n" +
+                                            calendarInfo.InnerHtml);
+                SentrySdk.CaptureException(e);
+                throw e;
             }
 
             var nextMonthKey = calendarInfo.ChildNodes[1].LastChild.FirstChild.FirstChild.Attributes["href"].Value;
