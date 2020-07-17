@@ -64,7 +64,7 @@ namespace HAC.API.Helpers {
         /// </summary>
         /// <param name="dataSource">Data source</param>
         public LineReader(Func<TextReader> dataSource) {
-            this._dataSource = dataSource;
+            _dataSource = dataSource;
         }
 
         /// <summary>

@@ -3,19 +3,29 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Text.RegularExpressions;
+using HAC.API.Data.Forms;
 using HAC.API.Data.Objects;
 using HAC.API.Helpers;
 using HtmlAgilityPack;
 
 namespace HAC.API.Data {
-    public static class Courses {
-        public static List<List<AssignmentCourse>> GetAssignmentsFromMarkingPeriod(CookieContainer cookies,
-            Uri requestUri, string link) {
+    public interface ICourses {
+        List<List<AssignmentCourse>> GetAssignmentsFromMarkingPeriod(string link);
+    }
+
+    public class Courses : ICourses {
+        private readonly HttpClient _httpClient;
+
+        public Courses(HttpClient httpClient) {
+            _httpClient = httpClient;
+        }
+
+        public List<List<AssignmentCourse>> GetAssignmentsFromMarkingPeriod(string link) {
             var courseList = new List<List<AssignmentCourse>>();
             var documentList = new List<HtmlDocument>();
-            var data = Utils.GetData(cookies, requestUri, link, ResponseType.Assignments);
+            var data = Utils.GetData(_httpClient, link, ResponseType.Assignments);
 
             var htmlDocument = new HtmlDocument();
             htmlDocument.LoadHtml(data.Result);
@@ -24,7 +34,7 @@ namespace HAC.API.Data {
             var reportingPeriodNames = form.ReportingPeriodNames();
             foreach (var name in reportingPeriodNames) {
                 var body = form.GenerateFormBody(name);
-                var response = Utils.GetDataWithBody(cookies, requestUri, link, ResponseType.Assignments, body);
+                var response = Utils.GetDataWithBody(_httpClient, link, ResponseType.Assignments, body);
                 var doc = new HtmlDocument();
                 doc.LoadHtml(response.Result);
                 documentList.Add(doc);
@@ -51,7 +61,7 @@ namespace HAC.API.Data {
                     var param = $"?section_key={sectionKey}&rcrun={run + 1}";
 
                     //gets html for popup
-                    var popUpData = Utils.GetData(cookies, requestUri, link, ResponseType.ClassPopUp, "Student", param);
+                    var popUpData = Utils.GetData(_httpClient, link, ResponseType.ClassPopUp, "Student", param);
                     var popUpDoc = new HtmlDocument();
                     popUpDoc.LoadHtml(popUpData.Result);
 

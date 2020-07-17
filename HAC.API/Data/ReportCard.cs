@@ -1,12 +1,27 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using HAC.API.Data.Objects;
 using HtmlAgilityPack;
 
 namespace HAC.API.Data {
-    public static class ReportCard {
-        public static List<List<Course>> CheckReportCardTask(HtmlDocument reportCardDocument) {
+    public interface IReportCard {
+        List<List<Course>> CheckReportCardTask(string link);
+    }
+
+    public class ReportCard : IReportCard {
+        private readonly HttpClient _httpClient;
+
+        public ReportCard(HttpClient httpClient) {
+            _httpClient = httpClient;
+        }
+
+        public List<List<Course>> CheckReportCardTask(string link) {
+            //fetches and loads data
+            var reportCardData = Utils.GetData(_httpClient, link, ResponseType.ReportCards);
+            var reportCardDocument = new HtmlDocument();
+            reportCardDocument.LoadHtml(reportCardData.Result);
             //checks the reporting period
             var reportCardHeader = reportCardDocument.DocumentNode.Descendants("div")
                 .FirstOrDefault(node => node.GetAttributeValue("class", "")
@@ -37,10 +52,10 @@ namespace HAC.API.Data {
             {
                 var courseName = reportCardCourse.Descendants("a") //gets course name
                     .FirstOrDefault(node => node.GetAttributeValue("href", "")
-                        .Equals("#")).InnerText.Trim();
+                        .Equals("#"))?.InnerText.Trim();
 
                 var courseId = reportCardCourse.Descendants("td") //gets course id
-                    .FirstOrDefault().InnerText.Trim();
+                    .FirstOrDefault()?.InnerText.Trim();
 
                 var elementNumber = markingPeriod switch {
                     1 => 2,

@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using HtmlAgilityPack;
 
-namespace HAC.API.Data {
+namespace HAC.API.Data.Forms {
     public class GradesForm {
         private readonly Dictionary<string, string> _reportingPeriodValues;
         private readonly Dictionary<string, string> _runChangeForm;

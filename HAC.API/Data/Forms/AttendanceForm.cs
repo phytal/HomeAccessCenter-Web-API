@@ -5,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 
-namespace HAC.API.Data {
+namespace HAC.API.Data.Forms {
     public class AttendanceForm {
         private readonly List<string> _monthKeys;
 

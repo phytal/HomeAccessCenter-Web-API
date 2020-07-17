@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using HtmlAgilityPack;
 
-namespace HAC.API.Data {
+namespace HAC.API.Data.Forms {
     public class IprForm {
         private readonly Dictionary<string, string> _iprDateValues;
         private readonly Dictionary<string, string> _runChangeForm;

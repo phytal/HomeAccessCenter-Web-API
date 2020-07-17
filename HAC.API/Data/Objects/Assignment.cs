@@ -1,6 +1,8 @@
 ﻿using System;
+using JetBrains.Annotations;
 
 namespace HAC.API.Data.Objects {
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class Assignment {
         public string Title { get; set; }
         public string Name { get; set; }

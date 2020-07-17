@@ -1,33 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Sentry;
 
 namespace HAC.API.Data {
     public static class Utils {
-        public static async Task<string> GetData(CookieContainer cookies, Uri requestUri, string link, ResponseType type,
+        public static async Task<string> GetData(HttpClient httpClient, string link, ResponseType type,
             string section = "Student", string param = "") {
-            var s = string.Empty;
-            foreach (Cookie cookie in cookies.GetCookies(requestUri)) s += cookie.Name + "=" + cookie.Value + "; ";
-
             var requestLink = $"{link}/HomeAccess/Content/{section}/{type.ToString()}.aspx{param}";
             try {
-                // setting up the http client
-                var handler = new HttpClientHandler {
-                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-                    CookieContainer = cookies
-                }; 
-                var httpClient = new HttpClient(handler) {BaseAddress = new Uri(link)};
-                httpClient.DefaultRequestHeaders.Referrer =
-                    new Uri(requestLink);
-                foreach (var (key, value) in Hac.HandlerProperties) httpClient.DefaultRequestHeaders.Add(key, value);
-                
+                foreach (var (key, value) in Login.HandlerProperties) httpClient.DefaultRequestHeaders.Add(key, value);
+
                 // tries to post a request with the http client
                 try {
                     // TODO: get cancellation tokens to work
@@ -41,9 +28,9 @@ namespace HAC.API.Data {
                     //     throw new TimeoutException(
                     //         $"Error 504: Data fetching request to {link} while fetching the {type.ToString()} has timed out.");
                     // }
-                    
+
                     var response = await httpClient.GetStringAsync(requestLink);
-                    
+
                     return response;
                 }
                 catch (HttpRequestException e) {
@@ -56,25 +43,16 @@ namespace HAC.API.Data {
             }
         }
 
-        public static async Task<string> GetDataWithBody(CookieContainer cookies, Uri requestUri, string link, ResponseType type,
+        public static async Task<string> GetDataWithBody(HttpClient httpClient, string link, ResponseType type,
             string body, string section = "Student") {
-            var s = string.Empty;
-            foreach (Cookie cookie in cookies.GetCookies(requestUri)) s += cookie.Name + "=" + cookie.Value + "; ";
-
             try {
-                // setting up the http client
-                var handler = new HttpClientHandler {
-                    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
-                    CookieContainer = cookies
-                }; 
-                var httpClient = new HttpClient(handler) {BaseAddress = new Uri(link)};
                 httpClient.DefaultRequestHeaders.Referrer =
                     new Uri($"{link}/HomeAccess/Content/{section}/{type.ToString()}.aspx");
                 httpClient.DefaultRequestHeaders.CacheControl = CacheControlHeaderValue.Parse("max-age=0");
                 httpClient.DefaultRequestHeaders.ExpectContinue = false;
                 httpClient.DefaultRequestHeaders.Add("Origin", @$"{link}/");
-                foreach (var (key, value) in Hac.HandlerProperties) httpClient.DefaultRequestHeaders.Add(key, value);
-                
+                foreach (var (key, value) in Login.HandlerProperties) httpClient.DefaultRequestHeaders.Add(key, value);
+
                 var data = new StringContent(body, Encoding.UTF8, "application/x-www-form-urlencoded");
 
                 // tries to post a request with the http client

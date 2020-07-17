@@ -1,11 +1,23 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using HAC.API.Data.Objects;
 using HtmlAgilityPack;
 
 namespace HAC.API.Data {
-    public static class Transcript {
-        public static List<List<TranscriptCourse>> GetTranscript(string data) {
+    public interface ITranscript {
+        List<List<TranscriptCourse>> GetTranscript(string link);
+    }
+
+    public class Transcript : ITranscript {
+        private readonly HttpClient _httpClient;
+
+        public Transcript(HttpClient httpClient) {
+            _httpClient = httpClient;
+        }
+
+        public List<List<TranscriptCourse>> GetTranscript(string link) {
+            var data = Utils.GetData(_httpClient, link, ResponseType.Transcript).Result;
             var oldAssignmentList = new List<List<TranscriptCourse>>();
             var oldHtmlDocument = new HtmlDocument();
             oldHtmlDocument.LoadHtml(data); //gets all of the years

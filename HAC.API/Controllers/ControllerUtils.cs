@@ -4,8 +4,20 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace HAC.API.Controllers {
-    public static class Utils {
-        public static Response GetResponse<T>(HttpContext context, ILogger<T> logger) {
+    public interface IControllerUtils {
+        Response GetResponse<T>(HttpContext context, ILogger<T> logger);
+    }
+
+    public class ControllerUtils : IControllerUtils {
+        private readonly IHac _hac;
+        private readonly ILogin _login;
+
+        public ControllerUtils(IHac hac, ILogin login) {
+            _hac = hac;
+            _login = login;
+        }
+
+        public Response GetResponse<T>(HttpContext context, ILogger<T> logger) {
             string hacLink = context.Request.Query["hacLink"];
             string username = context.Request.Query["username"];
             string password = context.Request.Query["password"];
@@ -22,11 +34,9 @@ namespace HAC.API.Controllers {
                                   $"Username: {username}\n" +
                                   $"Password: {password}");
 
-            var response = Hac.Login(hacLink, username, password);
-            var container = response.Result.CookieContainer;
-            var uri = response.Result.RequestUri;
+            var response = _login.LoginAsync(hacLink, username, password);
 
-            if (!Hac.IsValidLogin(response.Result.ResponseBody)) //checks if login credentials are true
+            if (!_hac.IsValidLogin(response.Result)) //checks if login credentials are true
             {
                 const string errorText = "Error 401: Either the HAC username or password is incorrect.";
                 return new Response {
@@ -38,18 +48,18 @@ namespace HAC.API.Controllers {
             var type = logger.GetType().GenericTypeArguments[0];
 
             if (type == typeof(HacController))
-                result = Hac.GetAll(container, uri, hacLink);
+                result = _hac.GetAll(hacLink);
             else if (type == typeof(StudentController))
-                result = Hac.GetStudentInfo(container, uri, hacLink);
+                result = _hac.GetStudentInfo(hacLink);
             else if (type == typeof(CourseController))
-                result = Hac.GetCourses(container, uri, hacLink);
+                result = _hac.GetCourses(hacLink);
             else if (type == typeof(IprController))
-                result = Hac.GetIpr(container, uri, hacLink);
+                result = _hac.GetIpr(hacLink);
             else if (type == typeof(ReportCardController))
-                result = Hac.GetReportCard(container, uri, hacLink);
+                result = _hac.GetReportCard(hacLink);
             else if (type == typeof(TranscriptController))
-                result = Hac.GetTranscript(container, uri, hacLink);
-            else if (type == typeof(AttendanceController)) result = Hac.GetAttendance(container, uri, hacLink);
+                result = _hac.GetTranscript(hacLink);
+            else if (type == typeof(AttendanceController)) result = _hac.GetAttendance(hacLink);
 
             return result;
         }

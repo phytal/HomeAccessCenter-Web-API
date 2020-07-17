@@ -1,6 +1,8 @@
 ﻿using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace HAC.API.Data.Objects {
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class AssignmentCourse : ICourse {
         public IEnumerable<Assignment> Assignments { get; set; }
         public GradeInfo GradeInfo { get; set; }

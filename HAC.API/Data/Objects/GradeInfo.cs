@@ -1,4 +1,7 @@
-﻿namespace HAC.API.Data.Objects {
+﻿using JetBrains.Annotations;
+
+namespace HAC.API.Data.Objects {
+    [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
     public class GradeInfo {
         public string GradeType { get; set; }
         public double TotalPointsEarned { get; set; }

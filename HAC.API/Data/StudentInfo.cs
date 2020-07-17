@@ -1,9 +1,25 @@
-﻿using HAC.API.Data.Objects;
+﻿using System.Net.Http;
+using HAC.API.Data.Objects;
 using HtmlAgilityPack;
 
 namespace HAC.API.Data {
-    public static class StudentInfo {
-        public static Student GetAllStudentInfo(HtmlDocument registrationDoc) {
+    public interface IStudentInfo {
+        Student GetAllStudentInfo(string link);
+    }
+
+    public class StudentInfo : IStudentInfo {
+        private readonly HttpClient _httpClient;
+
+        public StudentInfo(HttpClient httpClient) {
+            _httpClient = httpClient;
+        }
+
+        public Student GetAllStudentInfo(string link) {
+            //loads and fetches data
+            var studentData = Utils.GetData(_httpClient, link, ResponseType.Registration);
+            var registrationDoc = new HtmlDocument();
+            registrationDoc.LoadHtml(studentData.Result);
+
             var studentName = Utils.FormatName(registrationDoc.GetElementbyId("plnMain_lblRegStudentName").InnerText,
                 false);
             var birthDate = registrationDoc.GetElementbyId("plnMain_lblBirthDate").InnerText;
@@ -31,19 +47,17 @@ namespace HAC.API.Data {
                 Calendar = calender,
                 //Homeroom = homeroom,
                 Grade = grade,
-                Language = language,
+                Language = language
                 //HomeroomTeacher = homeroomTeacher
             };
         }
 
         // unused, returns the most basic information
-        public static Student GetStudentInfo(HtmlDocument registrationDoc)
-        {
+        public static Student GetStudentInfo(HtmlDocument registrationDoc) {
             var studentName = registrationDoc.GetElementbyId("plnMain_lblRegStudentName").InnerText;
             var language = registrationDoc.GetElementbyId("plnMain_lblLanguage").InnerText;
-        
-            return new Student
-            {
+
+            return new Student {
                 StudentName = studentName,
                 Language = language
             };
