@@ -2,5 +2,5 @@ bin/
 obj/
 /packages/
 nginx/logs/
-.DS_Store
-.idea
+/.idea.HAC API/
+.idea/workspace.xml
