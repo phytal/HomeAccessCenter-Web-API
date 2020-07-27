@@ -1,3 +1,6 @@
 bin/
 obj/
 /packages/
+nginx/logs/
+.DS_Store
+.idea
