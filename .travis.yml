@@ -9,7 +9,7 @@ env:
 #   - chmod +x docker-compose
 #   - sudo mv docker-compose /usr/local/bin
 script:
-  - sudo docker-compose up
+  - sudo docker-compose build
 # - dotnet restore
 # - dotnet build ./HAC.API/
 deploy:
