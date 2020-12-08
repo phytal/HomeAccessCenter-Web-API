@@ -1,6 +1,6 @@
 bin/
 obj/
 /packages/
-.log
+nginx/logs/
 .DS_Store
 .idea
