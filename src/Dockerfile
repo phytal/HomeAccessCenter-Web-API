@@ -16,7 +16,6 @@ RUN dotnet publish -c release -o /app --no-restore
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-alpine
 WORKDIR /app
 COPY --from=build /app ./
-ENV ASPNETCORE_URLS http://*:5000
-# ENTRYPOINT ["dotnet", "HAC.API.dll"]
-# heroku uses the following
-CMD ASPNETCORE_URLS=http://*:$PORT dotnet HAC.API.dll
+ENV ASPNETCORE_URLS http://+:5000
+EXPOSE 5000
+ENTRYPOINT ["dotnet", "HAC.API.dll"]
