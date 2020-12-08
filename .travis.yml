@@ -9,7 +9,7 @@ before_install:
   - chmod +x docker-compose
   - sudo mv docker-compose /usr/local/bin
 script:
-  - sudo docker-compose up
+  - docker-compose up
 # - dotnet restore
 # - dotnet build ./HAC.API/
 deploy:
