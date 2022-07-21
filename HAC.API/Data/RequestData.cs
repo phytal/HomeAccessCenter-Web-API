@@ -10,7 +10,7 @@ namespace HAC.API.Data {
     public static class RequestData {
         public static async Task<string> GetData(HttpClient httpClient, string link, ResponseType type,
             string section = "Student", string param = "") {
-            var requestLink = $"{link}/HomeAccess/Content/{section}/{type.ToString()}.aspx{param}";
+            var requestLink = $"{link}/HomeAccess/Content/{section}/{type}.aspx{param}";
             try {
                 foreach (var (key, value) in Login.HandlerProperties) httpClient.DefaultRequestHeaders.Add(key, value);
 
@@ -33,8 +33,9 @@ namespace HAC.API.Data {
         public static async Task<string> GetDataWithBody(HttpClient httpClient, string link, ResponseType type,
             string body, string section = "Student") {
             try {
+                var reqLink = $"{link}/HomeAccess/Content/{section}/{type}.aspx";
                 httpClient.DefaultRequestHeaders.Referrer =
-                    new Uri($"{link}/HomeAccess/Content/{section}/{type.ToString()}.aspx");
+                    new Uri(reqLink);
                 httpClient.DefaultRequestHeaders.CacheControl = CacheControlHeaderValue.Parse("max-age=0");
                 httpClient.DefaultRequestHeaders.ExpectContinue = false;
                 httpClient.DefaultRequestHeaders.Add("Origin", @$"{link}/");
@@ -44,7 +45,7 @@ namespace HAC.API.Data {
 
                 // tries to post a request with the http client
                 try {
-                    var response = await httpClient.PostAsync(link, data);
+                    var response = await httpClient.PostAsync(reqLink, data);
 
                     response.EnsureSuccessStatusCode();
 

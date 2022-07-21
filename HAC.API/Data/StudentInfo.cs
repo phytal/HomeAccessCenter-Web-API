@@ -28,7 +28,6 @@ namespace HAC.API.Data {
             var counselorEmail = registrationDoc.GetElementbyId("plnMain_lblCounselor").FirstChild.Attributes[0].Value
                 .Substring(7);
             var buildingName = registrationDoc.GetElementbyId("plnMain_lblBuildingName").InnerText;
-            var gender = registrationDoc.GetElementbyId("plnMain_lblGender").InnerText;
             var calender = registrationDoc.GetElementbyId("plnMain_lblCalendar").InnerText;
             var grade = registrationDoc.GetElementbyId("plnMain_lblGrade").InnerText;
             var language = registrationDoc.GetElementbyId("plnMain_lblLanguage").InnerText;
@@ -39,7 +38,6 @@ namespace HAC.API.Data {
                 CounselorName = counselorName,
                 CounselorEmail = counselorEmail,
                 Building = buildingName,
-                Gender = gender,
                 Calendar = calender,
                 Grade = grade,
                 Language = language

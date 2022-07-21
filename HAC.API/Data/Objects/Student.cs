@@ -8,7 +8,6 @@ namespace HAC.API.Data.Objects {
         public string CounselorName { get; set; }
         public string CounselorEmail { get; set; }
         public string Building { get; set; }
-        public string Gender { get; set; }
         public string Calendar { get; set; }
         public string Grade { get; set; }
         public string Language { get; set; }

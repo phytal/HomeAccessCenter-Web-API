@@ -16,9 +16,4 @@ RUN dotnet publish -c release -o /app --no-restore
 FROM mcr.microsoft.com/dotnet/core/aspnet:3.1
 WORKDIR /app
 COPY --from=build /app ./
-<<<<<<< HEAD:src/Dockerfile
-ENV ASPNETCORE_URLS http://+:5000
-EXPOSE 5000
-=======
->>>>>>> parent of 8a9cf3f (Docker + Heroku):Dockerfile
 ENTRYPOINT ["dotnet", "HAC.API.dll"]

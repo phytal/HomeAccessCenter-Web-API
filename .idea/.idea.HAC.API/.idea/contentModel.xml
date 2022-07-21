@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Users\Phytal\AppData\local\JetBrains\Rider2020.1\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\Phytal\AppData\local\JetBrains\Rider2020.1\resharper-host\local\Transient\ReSharperHost\v201\SolutionCaches\_HAC.API.-2101282127.00" t="ExcludeRecursive" />
+    <e p="C:\Users\Phytal\source\repos\HomeAccessCenter-Web-API" t="IncludeFlat">
+      <e p="HAC.API" t="IncludeRecursive">
+        <e p="appsettings.Development.json" t="Include" />
+        <e p="appsettings.json" t="Include" />
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="Controllers" t="Include">
+          <e p="AttendanceController.cs" t="Include" />
+          <e p="ControllerUtils.cs" t="Include" />
+          <e p="CourseController.cs" t="Include" />
+          <e p="HacController.cs" t="Include" />
+          <e p="IprController.cs" t="Include" />
+          <e p="ReportCardController.cs" t="Include" />
+          <e p="StudentController.cs" t="Include" />
+          <e p="TranscriptController.cs" t="Include" />
+        </e>
+        <e p="Data" t="Include">
+          <e p="Attendance.cs" t="Include" />
+          <e p="Courses.cs" t="Include" />
+          <e p="Forms" t="Include">
+            <e p="AttendanceForm.cs" t="Include" />
+            <e p="GradesForm.cs" t="Include" />
+            <e p="IprForm.cs" t="Include" />
+          </e>
+          <e p="HAC.cs" t="Include" />
+          <e p="Ipr.cs" t="Include" />
+          <e p="Login.cs" t="Include" />
+          <e p="Objects" t="Include">
+            <e p="Assignment.cs" t="Include" />
+            <e p="AssignmentCourse.cs" t="Include" />
+            <e p="Course.cs" t="Include" />
+            <e p="Day.cs" t="Include" />
+            <e p="GradeInfo.cs" t="Include" />
+            <e p="ICourse.cs" t="Include" />
+            <e p="Response.cs" t="Include" />
+            <e p="Student.cs" t="Include" />
+            <e p="TranscriptCourse.cs" t="Include" />
+          </e>
+          <e p="ReportCard.cs" t="Include" />
+          <e p="RequestData.cs" t="Include" />
+          <e p="StudentInfo.cs" t="Include" />
+          <e p="Transcript.cs" t="Include" />
+          <e p="Utils.cs" t="Include" />
+        </e>
+        <e p="HAC.API.csproj" t="IncludeRecursive" />
+        <e p="Helpers" t="Include">
+          <e p="Extensions.cs" t="Include" />
+          <e p="LineReader.cs" t="Include" />
+        </e>
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Debug" t="Include">
+            <e p="netcoreapp3.1" t="Include">
+              <e p="HAC.API.AssemblyInfo.cs" t="Include" />
+            </e>
+          </e>
+        </e>
+        <e p="Program.cs" t="Include" />
+        <e p="Properties" t="Include">
+          <e p="launchSettings.json" t="Include" />
+        </e>
+        <e p="Startup.cs" t="Include" />
+      </e>
+      <e p="HAC.API.sln" t="IncludeFlat" />
+      <e p="packages" t="ExcludeRecursive" />
+    </e>
+  </component>
+</project>

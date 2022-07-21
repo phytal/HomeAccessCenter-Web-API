@@ -52,7 +52,7 @@ namespace HAC.API.Data.Forms {
             var daysInPrevious = DateTime.DaysInMonth(year, monthNumber - 1);
 
             var regex = new Regex(@"\('ctl00\$plnMain\$cldAttendance','([A-Za-z0-9\-]+)'\)$");
-            var previousMonthKey = calendarInfo.ChildNodes[1].FirstChild.FirstChild.FirstChild.Attributes["href"].Value;
+            var previousMonthKey = calendarInfo.ChildNodes[1].FirstChild.FirstChild.Attributes["href"].Value;
             var match = regex.Match(previousMonthKey);
             if (match.Success) previousMonthKey = match.Groups[1].Value;
 
@@ -70,7 +70,7 @@ namespace HAC.API.Data.Forms {
                 throw e;
             }
 
-            var nextMonthKey = calendarInfo.ChildNodes[1].LastChild.FirstChild.FirstChild.Attributes["href"].Value;
+            var nextMonthKey = calendarInfo.ChildNodes[1].LastChild.FirstChild.Attributes["href"].Value;
             match = regex.Match(nextMonthKey);
             if (match.Success) nextMonthKey = match.Groups[1].Value;
 
