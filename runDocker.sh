@@ -8,4 +8,4 @@ echo '-= Building Docker Image from Dockerfile ='
 docker build -t hac.api .
 
 echo '-= Runnning the Image ='
-docker run -it -p 5000:80 --restart on-failure:5 --name hac_api hac.api
+wintpy docker run -it -p 5000:80 --restart on-failure:5 --name hac_api hac.api
